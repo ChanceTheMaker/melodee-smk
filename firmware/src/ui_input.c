@@ -831,7 +831,7 @@ static void edit_param(uint32_t slot, int32_t steps)
     *vp = (int16_t)v;
     if(pg->scope==SC_P5){
         uint8_t old[MO_NATIVE_N];uint32_t f=motion_guard();
-        motion_native_peek(TSEL,old);p5_edit_value(TSEL,pg->id[slot],v-(pg->id[slot]==P5_BEND?1:0));native_motion(old);
+        motion_native_peek(TSEL,old);p5_edit_value(TSEL,pg->id[slot],p5_panel_raw(TSEL,pg->id[slot],v));native_motion(old);
         motion_unguard(f);return;
     }
     if(pg->scope==SC_P5STORE){p5_store_slot=(int16_t)v;return;}
