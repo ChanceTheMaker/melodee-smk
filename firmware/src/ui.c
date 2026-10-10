@@ -193,7 +193,7 @@ static int native_page(uint32_t i, uint32_t fam)       /* page i: one of fam's n
 {
     const char *const *t = native_titles(fam);
     for (; t && *t; t++)
-        if (!memcmp(PAGES[i].title, *t, str_len(*t)))
+        if (str_prefix(PAGES[i].title, *t))
             return 1;
     return 0;
 }

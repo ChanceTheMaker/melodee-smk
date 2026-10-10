@@ -4754,7 +4754,7 @@ static int test_prophet_pages(void)
     apply_preset_to(TSEL,0);
     for(uint32_t i=0;i<NPAGES;i++)if(PAGES[i].scope==SC_P5||PAGES[i].scope==SC_P5STORE)visible+=page_visible(i);
     bad+=check("Prophet exposes all sixteen native editing and store pages",visible==16);
-    go_title("P5 OSC A");p5_patch_t before=*p5_patch_of(TSEL);turn(EN_K1,1);before.raw[P5_FREQ_A]++;
+    go_title("P5 OSC A");p5_patch_t before=*p5_patch_of(TSEL);turn(EN_K1,1);before.raw[P5_FREQ_A]+=2;
     bad+=check("native oscillator knob changes its field and preserves opaque bytes",!memcmp(&before,p5_patch_of(TSEL),sizeof before));
     go_title("P5 STORE");p5_store_slot=128;turn(EN_K2,1);press(B_OCTUP);
     bad+=check("native STORE: OCT+ the slot's sheet, no NAME yet",!name_on()&&pop.on==POP_SHEET&&p5_store_slot==128);

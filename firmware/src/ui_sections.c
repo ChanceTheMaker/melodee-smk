@@ -31,7 +31,7 @@ static const char *sec_rule(uint32_t i, uint32_t *plen)   /* page i's section na
     uint32_t r;
     for (r = 0; r < NELEM(SEC_RULE); r++) {
         uint32_t n = str_len(SEC_RULE[r].prefix);
-        if (!memcmp(PAGES[i].title, SEC_RULE[r].prefix, n)) {
+        if (str_prefix(PAGES[i].title, SEC_RULE[r].prefix)) {
             if (plen) *plen = n;
             return SEC_RULE[r].name;
         }
@@ -144,7 +144,7 @@ static void sec_chip(uint32_t i, char *b, uint32_t n)
         return;
     }
     for (k = 0; k < NELEM(STRIP); k++)
-        if (!memcmp(t, STRIP[k], str_len(STRIP[k])) && t[str_len(STRIP[k])]) {
+        if (str_prefix(t, STRIP[k]) && t[str_len(STRIP[k])]) {
             t += str_len(STRIP[k]);
             break;
         }
