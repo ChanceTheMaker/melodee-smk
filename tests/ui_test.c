@@ -1624,6 +1624,16 @@ static int test_roll(void)
     turn(EN_K4, 1); turn(EN_K4, 1);
     ok = song.g[G_TUNE] == 3 && !ui.roll[3].from[0] && roll_static_now();
     bad += check("roll: a change within 40 ms of the last one snaps (a fast turn)", ok);
+    /* the header BPM snapping (a fast turn mid-roll, 99 -> 100): the new value drawn that frame, no roll frame left */
+    ui_power_on(); roll_settle_on("TEMPO");
+    turn(EN_K1, 1); frame(); turn(EN_K1, 1);
+    ok = song.g[G_BPM] == 122 && !ui.roll[ROLL_BPM].from[0] && roll_static_now();
+    for (k = 0; k < 6u; k++) turn(EN_K1, 1);
+    ok &= song.g[G_BPM] == 128 && roll_static_now();
+    ui_power_on(); song.g[G_BPM] = 99; roll_settle_on("TEMPO");
+    turn(EN_K1, 1);
+    ok &= song.g[G_BPM] == 100 && !ui.roll[ROLL_BPM].from[0] && roll_static_now();
+    bad += check("roll: the header BPM snapping (a fast turn, 99 -> 100) shows the new value at once", ok);
 
     /* snaps: another shape, a name, the page, the track, the palette, ui.force */
     ui_power_on(); roll_settle();
