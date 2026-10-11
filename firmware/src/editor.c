@@ -348,8 +348,8 @@ static void ed_handle(const uint8_t *f, uint32_t n)   /* f: the bytes between F0
     if (ed_native_handle(cmd, a, na)) { ed_send(); return; }
     switch (cmd) {
 #if MELODEE_USB_AUDIO
-    case ED_AUDIO_STATS: {                         /* flags: 1 resets maxima, 2 voices, 4 cores, 8 memory, 16 LED/input probe */
-        uint32_t snapshot[47] = {0}, k, count = na && (a[0] & 16u) ? 8u : na && (a[0] & 8u) ? 47u : na && (a[0] & 4u) ? 32u : na && (a[0] & 2u) ? 26u : 20u;
+    case ED_AUDIO_STATS: {                         /* flags: 1 resets maxima, 2 voices, 4 cores, 8 resource/cache banks */
+        uint32_t snapshot[47] = {0}, k, count = na && (a[0] & 8u) ? 47u : na && (a[0] & 4u) ? 32u : na && (a[0] & 2u) ? 26u : 20u;
         fm1_irq_off();
         snapshot[0] = ua.play_alt;
         snapshot[1] = ua.cap_alt;
@@ -414,9 +414,6 @@ static void ed_handle(const uint8_t *f, uint32_t n)   /* f: the bytes between F0
                     (uintptr_t)resource[r].ptr < (uintptr_t)_resource_cache_end)
                     snapshot[46] += resource[r].size;
         }
-        if (count == 8u) {                         /* schema 6; existing audio schemas stay unchanged */
-            fm1_input_led_snapshot(snapshot);
-        }
         if (na && (a[0] & 1u)) {
             ua.poll_max_ticks = ua.service_max_ticks = melodee_dbg.max_us = 0;
 #if MELODEE_DUAL_CORE
@@ -424,7 +421,7 @@ static void ed_handle(const uint8_t *f, uint32_t n)   /* f: the bytes between F0
 #endif
         }
         fm1_irq_on();
-        ed_b(count == 8u ? 6u : count == 47u ? 5u : count == 32u ? 4u : count == 26u ? 3u : 2u);
+        ed_b(count == 47u ? 5u : count == 32u ? 4u : count == 26u ? 3u : 2u);
         for (i = 0; i < count; i++)
             for (k = 0; k < 5u; k++)
                 ed_b(snapshot[i] >> (7u * k));

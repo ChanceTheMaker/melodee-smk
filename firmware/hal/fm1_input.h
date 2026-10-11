@@ -115,19 +115,6 @@ static volatile struct {
     uint32_t kb_n, kb_sum, kb_max, dac_sum, dac_max;
 } fm1_in_stat;
 
-/* Caller holds IRQs off. Read-only diagnostics for editor command 72/flag16. */
-static void fm1_input_led_snapshot(uint32_t out[8])
-{
-    out[0] = fm1_led_pwm_active;
-    out[1] = FM1_LED_PWM_REG(FM1_LED_PWM_CH1);
-    out[2] = FM1_LED_PWM_REG(FM1_LED_PWM_CH3);
-    out[3] = FM1_LED_PWM_REG(0x150E4u);
-    out[4] = FM1_PR(FM1_PA, FM1_IN);
-    out[5] = fm1_in.buttons;
-    out[6] = fm1_in.notes;
-    out[7] = fm1_in.frames;
-}
-
 static void fm1__led_lines(uint32_t rowmask)       /* row bit 1 PA9, 2 PA10, 3 PH6, 4 PH9 */
 {
     if (!fm1_led_pwm_active) {

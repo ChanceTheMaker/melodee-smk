@@ -104,12 +104,6 @@ int main(void)
         }
     CHECK(fm1_in.frames == 64u && fm1_in_stat.ticks == 64u * FM1_NCOL);
     CHECK(fm1_in.notes == 0u && fm1_in.buttons == 0u);
-    {
-        uint32_t snapshot[8];
-        fm1_input_led_snapshot(snapshot);
-        CHECK(snapshot[0] == 1u && snapshot[1] == 2u && snapshot[2] == 2u);
-        CHECK(snapshot[5] == 0u && snapshot[6] == 0u && snapshot[7] == 64u);
-    }
     /* Overlapping planes select the brightest, bright wins, and dark stays dark. */
     for (r = 1u; r <= 4u; r++) {
         const uint8_t dim[3] = {(uint8_t)(1u << r), (uint8_t)(1u << r), (uint8_t)(1u << r)};
