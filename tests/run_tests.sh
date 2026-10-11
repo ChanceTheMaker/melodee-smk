@@ -120,6 +120,8 @@ run "user presets (UP_PUT parser, bank round trip, versions, PHYS DRUM -> DRUM, 
 
 $CC -o "$OUT/input_test" tests/input_test.c
 run "keys and buttons: fast press, long release, bouncy contacts (one note each), glitches, encoders, fast spins" "$OUT/input_test"
+$CC -o "$OUT/led_pwm_test" tests/led_pwm_test.c
+run "LED hardware PWM: pin ownership, duty per scan, overlapping planes, blanking" "$OUT/led_pwm_test"
 
 $CC -o "$OUT/midi_uart_test" tests/midi_uart_test.c
 run "TRS MIDI parser" "$OUT/midi_uart_test"

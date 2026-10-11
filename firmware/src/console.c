@@ -230,6 +230,7 @@ static void con_inp(void)
     uint32_t now = fm1_ticks(), win = now - t_last, i, k;
     uint32_t win_us = win / FM1_TICKS_PER_US;
     t_last = now;
+    con_kv("led_pwm", fm1_led_pwm_active);
     con_kv("window_ms", (int32_t)(win_us / 1000u));
     con_kv("ticks_per_s", (int32_t)(win_us >= 1000u ? fm1_in_stat.ticks * 1000u / (win_us / 1000u) : 0u));
     con_kv("gap_max_us", (int32_t)(fm1_in_stat.gap_max / FM1_TICKS_PER_US));
