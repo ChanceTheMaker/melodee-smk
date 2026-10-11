@@ -36,6 +36,21 @@ FM operators, CZ-1 ring and noise), shape the engine's real controls, compare ag
 and name your own preset. Open **Sound designer** from the HOME hold menu
 or a sound page's action sheet. [Controls and saving](docs/SOUND_DESIGNER.md).
 
+- **Clearer header:** the four track dots are gone. A REC mark beside the tempo shows recording
+  (filled: the selected track is armed; a ring: another track is), the octave shift is a small
+  `+2` / `-1` badge, and a page's dots always fit. The bar under a sound page starts with the
+  track's number in its colour.
+- **Larger small text:** labels, names and values are a pixel larger and easier to read.
+- **Short pages become knob pages:** CHORD, ENV DEST, LFO DEST, LFO 2, ARP 2 and DLY 2 put their
+  settings on the four knobs. MPC's degree moved into the SCL list (shown with QNT MPC). Number
+  settings (GLO DRUM channel, FM6 ALG, CZ-1 SUS and END) step in place instead of opening a picker.
+- **Prophet tone controls:** keyed tuning moves in audible semitone steps, controls whose signal
+  path is switched off still show, and unison shows the native default voice count.
+- **Steadier dim lights:** idle key and button lights are dimmed by hardware PWM. If the startup
+  check finds a conflict on the input rows, the earlier frame dimming is used instead.
+- **Fixes:** the header BPM no longer freezes mid-roll on fast turns, and a small patch of the
+  screen can no longer stay out of date after an update.
+
 ## What's new in 1.0.2
 
 - **Two installer builds:** Standard uses both cores. Choose **Single core** if your FM-1 crashes,
