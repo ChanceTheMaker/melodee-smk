@@ -129,13 +129,14 @@ TAKE JAM: REC held on SONG (elsewhere REC held captures).
 
 - **List pages** (set and leave): only where there are more than four settings (Kerem, 2026-10-11: four or fewer are
   the page's own four knobs). A row a setting (KNOB 2 the row, KNOB 1 its value, OCT+ a list value's full list, OCT-
-  back), the page's picture under the rows where it has one: SCL (five rows; OCT+ on Scale: the SCALES list), VOICE
+  back), the page's picture under the rows where it has one: SCL (OCT+ on Scale: the SCALES list; with Quantise MPC
+  a row for MPC degree, which had a page of its own), VOICE
   1-3 (one list), FM6's LFO and controller pages (a list each).
   TEMPO, GLOBAL, SYSTEM stay knobs (BPM and TUNE are turned while playing, their digits roll); TEMPO's third knob is
   the selected track's Quantize (TIMING's page retired, Kerem 2026-10-10).
 - **Knob pages** (played while tweaked): four rings over the page's picture (R5): the engines' EDIT pages, ENV, LFO,
   DLY, REVERB, CHORUS, FX, SLICER, ARP, PATTERN; and the pages of four settings or fewer: CHORD (over its chord),
-  ENV DEST, LFO DEST, LFO 2 (over the LFO), ARP 2 (over the notes it plays), DLY 2 (over the echoes), MPC; MIXER,
+  ENV DEST, LFO DEST, LFO 2 (over the LFO), ARP 2 (over the notes it plays), DLY 2 (over the echoes); MIXER,
   Stage, PATTERNS direct.
 - **ENV / LFO follow the engine** (Kerem, 2026-10-10): the Prophet, FM6 and CZ-1 have envelopes and LFOs of their own
   (the track's ADSR and ENV DEST do nothing there), so ENV visits theirs (P5 FLT ENV, AMP ENV, ENV MOD; FM6 EG RATE,

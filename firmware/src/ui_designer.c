@@ -458,7 +458,7 @@ static uint32_t designer_need(void)
     const uint8_t *q=p5_patch_of(TSEL)->raw;
     const list_t *l=list_on();
     if(l){
-        const lrow_t *rw=&l->row[lst.row%l->n];uint32_t pg=page_titled(rw->page);
+        const lrow_t *rw=list_at(l,lst.row);uint32_t pg=page_titled(rw->page);
         if(ds.focus || pg>=NPAGES)return DF_NONE;     /* (KNOB 2: the row) */
         p=&PAGES[pg];id=p->id[rw->slot&3u];
     }

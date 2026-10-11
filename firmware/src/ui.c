@@ -230,8 +230,6 @@ static int page_visible(uint32_t i)
     if(PAGES[i].scope==SC_P5 || PAGES[i].scope==SC_P5STORE)return TSEL->eng_req==ENGI_PROPHET;
     if (PAGES[i].scope == SC_CZ1)
         return TSEL->eng_req == ENGI_CZ;               /* CZ-1's tone: every panel value */
-    if (PAGES[i].id[0] == P_MPCDEG && PAGES[i].scope == SC_TRACK)
-        return TSEL->p[P_QUANT] == Q_MPC;
     if (PAGES[i].scope == SC_FM6 || PAGES[i].scope == SC_FMOP)
         return TSEL->eng_req == ENGI_FM6;              /* FM6's patch, operators and functions */
 #if MELODEE_SLICE
