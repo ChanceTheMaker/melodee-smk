@@ -222,9 +222,8 @@ static void con_dbg(void)
         con_kx(NAMES[i], w[i]);
 }
 
-/* Input scan since the last `inp`, then cleared: tick gaps, column slot share
- * and scan cost. The historical led_on_* labels measure column selection;
- * TIMER2 ends dim rows earlier within those slots. */
+/* input scan (hal/fm1_input.h fm1_in_stat) since the last `inp`, then cleared: tick gaps (= LED
+ * on-time of a column), per-column LED share in 1/1000, the tick cost, encoder transitions */
 static void con_inp(void)
 {
     static uint32_t t_last;

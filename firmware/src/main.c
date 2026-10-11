@@ -6,17 +6,6 @@ extern uint32_t _data_start[], _data_end[], _data_load[], _bss_start[], _bss_end
 extern uint32_t _dsp_start[], _dsp_end[], _dsp_load[], _dt_start[], _dt_end[], _dt_load[];
 extern uint32_t _pool_start[], _pool_end[], _rt_start[], _rt_end[], _rt_load[];
 
-static volatile uint32_t timer5_busy;
-
-void fm1_timer2_irq(void)
-{
-    uint32_t t0 = fm1_ticks();
-    fm1_led_pwm_advance();
-    /* TIMER5 already counts interruptions inside itself. */
-    if (melodee_dbg.in_audio && !timer5_busy)
-        t5_nested_ticks += fm1_ticks() - t0;
-}
-extern void isr_timer2(void);
 
 /* TIMER5 outranks ALNK0, so the scan keeps its 100 us pace while a half buffer renders: before,
  * the ticks stopped for the whole render (0.7 ms idle, several ms loaded), the column lit when it
@@ -33,9 +22,7 @@ extern void isr_timer2(void);
 void fm1_timer5_irq(void)
 {
     static uint32_t sub, owed;
-    uint32_t t0, usb_due = sub % 5u == 0u;
-    timer5_busy = 1;
-    t0 = fm1_ticks();
+    uint32_t t0 = fm1_ticks(), usb_due = sub % 5u == 0u;
     fm1_timer5_ack();
     melodee_dbg.timer_irqs++;
     fm1_input_tick();
@@ -82,20 +69,16 @@ void fm1_timer5_irq(void)
     if (melodee_dbg.in_audio) {
         melodee_dbg.nested++;
         t5_nested_ticks += fm1_ticks() - t0;
-        timer5_busy = 0;
         return;
     }
     if (owed & 1u)
         usb_poll();
     owed = 0;
-    timer5_busy = 0;
 }
 extern void isr_timer5(void);
 
 static void timer5_start(void)                 /* OSC /4 = 6 MHz, PRD 600 -> 10 kHz */
 {
-    fm1_led_pwm_cancel();
-    fm1_irq_attach(FM1_IRQ_TIMER2, isr_timer2, 5); /* pulse ends preempt USB and audio */
     fm1_timer5_start(isr_timer5, 4);   /* above ALNK0 (3): the scan nests into the render (see fm1_timer5_irq) */
 }
 

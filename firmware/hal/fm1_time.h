@@ -13,9 +13,7 @@
 #include <stdint.h>
 
 #define FM1_T4_CON (*(volatile uint32_t *)0x10800u)
-#ifndef FM1_T4_CNT
 #define FM1_T4_CNT (*(volatile uint32_t *)0x10804u)
-#endif
 #define FM1_T4_PRD (*(volatile uint32_t *)0x10808u)
 #define FM1_TICKS_PER_US 24u
 
