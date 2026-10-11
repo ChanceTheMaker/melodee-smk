@@ -206,6 +206,8 @@ if [ -f build/gen/melodee_tables.h ]; then
     run "UI: sounds keep steps, undo, recording, MIDI overflow, pending saves, panel recovery, drum grid, song chain, MONO gray" "$OUT/ui_test"
     $CC -O2 -w -DMELODEE_USB_AUDIO=1 -Ibuild/gen -Ifirmware/src -o "$OUT/prophet_knob_test" tests/prophet_knob_test.c -lm
     run "Prophet: all native tone knobs through the panel and sound engine" "$OUT/prophet_knob_test"
+    $CC -O2 -w -DMELODEE_USB_AUDIO=1 -Ibuild/gen -Ifirmware/src -o "$OUT/designer_test" tests/designer_test.c -lm
+    run "Sound designer: native recipes, dependencies, compare, discard and save" "$OUT/designer_test"
     $CC -w -DMELODEE_USB_AUDIO=1 -Ibuild/gen -Ifirmware/src -o "$OUT/seq_edit_test" tests/seq_edit_test.c -lm
     run "Sequencer: tied length/move/delete, eight-level undo/redo, MIDI step entry and playing-step recording" "$OUT/seq_edit_test"
     $CC -O1 -w -DMELODEE_USB_AUDIO=1 -Ibuild/gen -Ifirmware/src -Itests -o "$OUT/ui_render" tests/ui_render.c -lm
