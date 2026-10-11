@@ -168,11 +168,11 @@ static uint32_t play_key_led(const track_t *t, uint32_t k)
     return KL_DIM;
 }
 
-static const uint8_t LIGHTS_MASK[LIGHTS_N] = {0, 7, 3, 1, 0};   /* the dim keys' frames: -, 1/8, 1/4, 1/2, all */
-#define BTN_DIM_MASK 3u                                         /* idle buttons: 1/4 of the frames */
+static const uint8_t LIGHTS_MASK[LIGHTS_N] = {0, 7, 3, 1, 0};   /* dim pulse widths: -, 1/8, 1/4, 1/2, full */
+#define BTN_DIM_MASK 3u                                         /* idle buttons: 1/4 of each slot */
 /* The lights' grammar, keys and buttons alike: dark nothing there, dim something there, bright happening now, breathing
  * waiting (a pattern for the bar, REC armed before the transport runs, PLAY counting in). Breathing: the third dim plane,
- * its level swept full .. 1/8 .. dark .. 1/8 .. full over a second (BREATH, 125 ms a step; 0xFF: dark) */
+ * its pulse width swept full .. 1/8 .. dark .. 1/8 .. full over a second (BREATH, 125 ms a step; 0xFF: dark) */
 static const uint8_t BREATH[8] = {0, 1, 3, 7, 0xFF, 7, 3, 1};
 static uint32_t breath_on(void) { return BREATH[(fm1_ms / 125u) & 7u] != 0xFFu; }
 

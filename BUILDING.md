@@ -73,6 +73,16 @@ SAMPLE engine has only the generated drum kit.
 
 ## Tests
 
+Button and key LEDs refresh on every 11-column scan frame (about 909 Hz).
+Dim levels use 1/8, 1/4 or 1/2 of each column's slot rather than skipping
+frames. TIMER2 ends dim pulses at priority 5, above the TIMER5 scan and USB
+service at priority 4 and audio at priority 3. The scan stops and clears
+TIMER2 before shifting columns to keep their shared GPIO writes separate.
+Host LED tests cover brightness overlap, delayed interrupts, timer wrap and
+column changes; physical flicker, brightness and added interrupt load need
+device validation. The console's historical `led_on_*` diagnostics measure
+column selection time, including the dark portion of dim pulses.
+
 Audio working memory is allocated on demand from the unused part of POOL and
 linker-derived gaps after RAM code, ordinary data and retained state. Allocations
 stay within a single bank and preserve boot records and stack guards. Each
