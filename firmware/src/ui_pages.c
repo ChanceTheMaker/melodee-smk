@@ -308,7 +308,8 @@ static void pv_column(uint32_t c, const char *label0, const char *val0, const ch
 }
 
 /* ---------------------------------------------------------- parts --- */
-/* the sound being edited: its engine (the track's colour), its name */
+/* the sound being edited: its track (the numeral, filled in the track's colour), its engine (the track's colour), its
+ * name */
 static void pv_sound(void)
 {
     char nm[20];
@@ -323,7 +324,8 @@ static void pv_sound(void)
         return;
     pv.sound = sig;
     cv_begin(240, 240 - PV_SOUND_Y, T_BG);
-    x = cv_text_on(8, 3, &AF_X, en, T_THEME, T_BG);
+    cv_icon_mid(6, 8, 16, trk_icon(song.sel, 1), T_THEME, T_BG);   /* (its ink at x 8, as the text was) */
+    x = cv_text_on(26, 3, &AF_X, en, T_THEME, T_BG);
     cv_free_text(x + 6, 1, &AF_S, nm, T_SEC, T_BG, 232 - x - 6);
     cv_blit(0, PV_SOUND_Y);
 }
