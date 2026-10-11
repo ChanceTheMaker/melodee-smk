@@ -26,9 +26,13 @@ static void transaction_tests(void)
     TSEL->step[0].note[0]=64;TSEL->step[0].n=1;TSEL->p[P_ARATE]=3;
     designer_snapshot(&before);
     uint32_t steps=steps_sig(TSEL);int16_t arp=TSEL->p[P_ARATE];
-    designer_open();turn(EN_K2,DG_PAD);press(B_OCTUP);
-    designer_snapshot(&after);
-    failures+=check("CURRENT preserves exact sound despite goal selection",!memcmp(&before,&after,sizeof before));
+    designer_open();
+    turn(EN_K2,1);int init=designer_init() && ds.goal==DG_FREE;turn(EN_K2,1);turn(EN_K2,1);
+    int pad=designer_init() && ds.goal==DG_PAD;turn(EN_K1,1);turn(EN_K2,-1);turn(EN_K2,-1);turn(EN_K2,-1);turn(EN_K2,-1);
+    int other=designer_init() && designer_start()==1u;turn(EN_K1,-1);turn(EN_K2,-1);
+    failures+=check("START steps CURRENT, INIT, then the goals; another engine starts from INIT",init && pad && other && !designer_init());
+    press(B_OCTUP);designer_snapshot(&after);
+    failures+=check("START CURRENT preserves the exact sound",!memcmp(&before,&after,sizeof before));
     designer_at("P5 OSC A",0);turn(EN_K4,1);designer_snapshot(&draft);
     press(B_SAVE);designer_snapshot(&after);
     failures+=check("SAVE compares against exact original, including opaque bytes",ds.compare && !memcmp(&before,&after,sizeof before));
@@ -47,26 +51,36 @@ static void dependency_tests(void)
 {
     ui_power_on();sound_init_of(TSEL,ENGI_PROPHET);designer_open();press(B_OCTUP);
     uint8_t *p=p5_patch_of(TSEL)->raw;
-    designer_at("P5 OSC A",0);p[P5_PULSE_A]=0;ds.focus=3;
+    designer_at("P5 FILTER",0);p5_patch_t was=*p5_patch_of(TSEL);turn(EN_K1,1);was.raw[P5_CUTOFF]=p[P5_CUTOFF];
+    failures+=check("a control that sounds changes nothing else",!memcmp(&was,p5_patch_of(TSEL),sizeof was) && !ui.msg_t);
+    designer_at("P5 OSC A",0);p[P5_PULSE_A]=0;turn(EN_K4,1);
+    failures+=check("turning a dim WIDTH A switches PULSE A on and says so",p[P5_PULSE_A] && p[P5_LEVEL_A] &&
+                    designer_need()==DF_NONE && str_eq(ui.msg,"PULSE A ON"));
+    designer_at("P5 POLYMOD",0);p[P5_POLY_FREQ]=p[P5_POLY_PW]=p[P5_POLY_FILTER]=0;turn(EN_K1,1);
+    failures+=check("turning Poly-Mod ENV AMT pairs it with a destination",p[P5_POLY_ENV] && p[P5_POLY_FILTER] && designer_need()==DF_NONE);
+    designer_at("P5 POLYMOD",0);p[P5_PULSE_A]=0;p[P5_POLY_FILTER]=p[P5_POLY_FREQ]=0;ds.focus=3;
+    failures+=check("Poly-Mod PW A first needs pulse A",designer_need()==DF_PULSEA);
     turn(EN_K4,1);
-    failures+=check("turning dormant width does not silently enable pulse",!p[P5_PULSE_A] && designer_need()!=0);
-    press(B_EDIT);
-    failures+=check("EDIT enables an audible pulse path",p[P5_PULSE_A] && p[P5_LEVEL_A] && designer_need()==0);
-    designer_at("P5 POLYMOD",0);p[P5_POLY_FREQ]=p[P5_POLY_PW]=p[P5_POLY_FILTER]=0;ds.focus=0;press(B_EDIT);
-    failures+=check("EDIT pairs Poly-Mod source with a destination",p[P5_POLY_ENV] && p[P5_POLY_FILTER] && !designer_need());
-    designer_at("P5 UNISON",0);p[P5_UNISON]=0;TSEL->p[P_VOICE]=V_POLY;ds.focus=1;press(B_EDIT);
-    failures+=check("EDIT enables native unison and accepts voice allocation",p[P5_UNISON] && TSEL->p[P_VOICE]==V_UNISON && p5_cap(TSEL)>1);
+    failures+=check("one turn switches both of its paths on",p[P5_PULSE_A] && p[P5_POLY_PW] && designer_need()==DF_NONE);
+    designer_at("P5 UNISON",0);p[P5_UNISON]=0;TSEL->p[P_VOICE]=V_POLY;turn(EN_K2,-1);
+    failures+=check("turning VOICES switches native unison on",p[P5_UNISON] && TSEL->p[P_VOICE]==V_UNISON && p5_cap(TSEL)>1);
     designer_at("P5 LFO",0);p[P5_LFO_INITIAL]=0;p[P5_LFO_SAW]=p[P5_LFO_TRI]=p[P5_LFO_PULSE]=0;
-    p[P5_WHEEL_FREQ_A]=p[P5_WHEEL_FREQ_B]=p[P5_WHEEL_PW_A]=p[P5_WHEEL_PW_B]=p[P5_WHEEL_FILTER]=0;press(B_EDIT);
-    failures+=check("EDIT connects LFO wave, initial depth and destination",p[P5_LFO_TRI] && p[P5_LFO_INITIAL] && p[P5_WHEEL_FILTER] && !designer_need());
-    designer_at("P5 FLT ENV",0);ds.focus=3;p[P5_RELEASE_ON]=0;p[P5_ENV_FILTER]=0;p[P5_POLY_ENV]=0;press(B_EDIT);
-    failures+=check("filter release repair enables both missing dependencies",p[P5_RELEASE_ON] && p[P5_ENV_FILTER] && !designer_need());
+    p[P5_WHEEL_FREQ_A]=p[P5_WHEEL_FREQ_B]=p[P5_WHEEL_PW_A]=p[P5_WHEEL_PW_B]=p[P5_WHEEL_FILTER]=0;turn(EN_K1,1);
+    failures+=check("turning LFO RATE connects wave, initial depth and destination",p[P5_LFO_TRI] && p[P5_LFO_INITIAL] && p[P5_WHEEL_FILTER] && designer_need()==DF_NONE);
+    designer_at("P5 FLT ENV",0);p[P5_RELEASE_ON]=0;p[P5_ENV_FILTER]=0;p[P5_POLY_ENV]=0;turn(EN_K4,1);
+    failures+=check("turning filter REL switches release and the filter envelope on",p[P5_RELEASE_ON] && p[P5_ENV_FILTER] && designer_need()==DF_NONE);
     designer_close(0);sound_init_of(TSEL,ENGI_FM6);designer_open();press(B_OCTUP);
-    designer_at("OUT",2);fm6_on[0]&=(uint8_t)~(1u<<3);fm6_patch[0][3*FP_OP+FP_OL]=0;press(B_EDIT);
-    failures+=check("FM repair addresses displayed OP3, not reversed OP4",(fm6_on[0]&(1u<<3)) && fm6_patch[0][3*FP_OP+FP_OL]==70);
+    fm6_on[0]=FM6_ON_ALL;fm6_patch[0][3*FP_OP+FP_OL]=50;designer_route();
+    designer_at("OUT",2);fm6_on[0]&=(uint8_t)~(1u<<3);fm6_patch[0][3*FP_OP+FP_OL]=0;turn(EN_K1,-1);
+    failures+=check("a silent operator's level turned down stays silent",!(fm6_on[0]&(1u<<3)) && !fm6_patch[0][3*FP_OP+FP_OL]);
+    turn(EN_K1,1);
+    failures+=check("turned up, the displayed OP3 (not reversed OP4) is switched on",(fm6_on[0]&(1u<<3)) && fm6_patch[0][3*FP_OP+FP_OL]>0);
     designer_close(0);sound_init_of(TSEL,ENGI_CZ);designer_open();press(B_OCTUP);
-    designer_at("CZ VIBRATO",0);designer_cz_put(LCZ_VDEP,0);press(B_EDIT);
-    failures+=check("CZ vibrato repair adds nonzero depth",cz_patch[0].raw[11]!=0 && !designer_need());
+    designer_at("CZ VIBRATO",0);designer_cz_put(LCZ_VDEP,0);turn(EN_K2,1);
+    failures+=check("turning CZ vibrato RATE gives it depth",cz_patch[0].raw[11]!=0 && designer_need()==DF_NONE);
+    designer_at("CZ DETUNE",0);designer_cz_put(LCZ_LINE,0);turn(EN_K4,1);
+    failures+=check("turning a line-2 DETUNE selects 1+2'",designer_feat_get(DF_LINES)==2u && designer_need()==DF_NONE);
+    designer_close(0);
 }
 /* FEATURES' row of path f (KNOB 1 turns it: the knob returned) */
 static uint32_t designer_feature(uint32_t f)
@@ -142,9 +156,9 @@ static void feature_tests(void)
     eng_state_reset();ui_power_on();sound_init_of(TSEL,ENGI_PROPHET);designer_open();ds.current=0;press(B_OCTUP);
     uint8_t *p=p5_patch_of(TSEL)->raw;
     turn(EN_K1+designer_feature(DF_PULSEA),1);turn(EN_K1+designer_feature(DF_POLY),1);turn(EN_K1+designer_feature(DF_UNISON),1);
-    designer_at("P5 OSC A",0);ds.focus=3;int width=!designer_need();
-    designer_at("P5 POLYMOD",0);ds.focus=0;int poly=!designer_need();
-    designer_at("P5 UNISON",0);ds.focus=1;int uni=!designer_need() && TSEL->p[P_VOICE]==V_UNISON && p5_cap(TSEL)>1;
+    designer_at("P5 OSC A",0);ds.focus=3;int width=designer_need()==DF_NONE;
+    designer_at("P5 POLYMOD",0);ds.focus=0;int poly=designer_need()==DF_NONE;
+    designer_at("P5 UNISON",0);ds.focus=1;int uni=designer_need()==DF_NONE && TSEL->p[P_VOICE]==V_UNISON && p5_cap(TSEL)>1;
     failures+=check("Prophet FEATURES make WIDTH A, Poly-Mod and unison controls live",p[P5_PULSE_A] && width && poly && uni);
     designer_feature(DF_POLY);turn(EN_K1+designer_feature(DF_POLY),-1);
     failures+=check("Poly-Mod OFF opens its destinations and keeps its amounts",!p[P5_POLY_FREQ] && !p[P5_POLY_PW] && !p[P5_POLY_FILTER] && p[P5_POLY_ENV]);
@@ -190,7 +204,8 @@ static void route_recipe_tests(void)
         for(uint32_t p=0;p<NPAGES;p++)if(designer_page_ok(p)){
             for(uint32_t op=0;op<(PAGES[p].scope==SC_FMOP?6u:1u);op++){
                 int found=0;for(uint32_t i=0;i<ds.n;i++)found|=ds.route[i].page==p && ds.route[i].op==op && ds.route[i].stage!=DT_BUILD;
-                coverage &= found;
+                if(designer_live(p) && (PAGES[p].scope!=SC_FMOP || designer_feat_get(DF_OP1+op)))coverage &= found;
+                else coverage &= !found;            /* (what FEATURES switched off is not shaped) */
             }
         }
         clean &= !song.grid && !kb_mask && !perf_mask;
@@ -202,7 +217,7 @@ static void route_recipe_tests(void)
         trk_note_off(TSEL,drum_track(TSEL)?36:60);
         designer_close(1);
     }
-    failures+=check("expert path covers every eligible page and all six FM operators",coverage);
+    failures+=check("ALL pages: every eligible page, each FM operator switched on, nothing switched off",coverage);
     failures+=check("every engine and goal recipe produces audio through the real DSP",audible);
     failures+=check("all CZ goal recipes retain valid native envelope records",valid);
     failures+=check("wizard keys stay playable and do not become layer/grid shortcuts",clean);

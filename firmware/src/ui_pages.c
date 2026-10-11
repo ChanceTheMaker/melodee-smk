@@ -314,6 +314,8 @@ static void pv_sound(void)
     const char *en = ENGINES[eng_idx(TSEL->eng_req)]->name;
     uint32_t sig;
     int32_t x;
+    if (designer_on() && designer_foot())                /* the sound designer: its keys (ui_designer.c) */
+        return;
     sound_name(TSEL, nm);
     sig = str_hash(str_hash(song.sel * 7u + ux.gen * 977u + ux.pal * 31u, en), nm);
     if (!ui.force && sig == pv.sound)

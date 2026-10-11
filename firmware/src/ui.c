@@ -159,6 +159,7 @@ static int designer_head_chip(char *b);
 static void designer_pages(uint32_t *n, uint32_t *k);
 static int designer_tabs_on(void);
 static void designer_tabs(void);
+static int designer_foot(void);
 static void (*designer_quit)(int discard);   /* designer_close while it is open (project.c: a project loading) */
 
 #include "screen.c"
