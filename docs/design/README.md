@@ -42,6 +42,9 @@ Colours: background `#17141F`, panel `#1D1926`, surface `#221E2C`, raised `#2620
 
 Type (Rubik): labels 8.5-9 px / 500, capitals, in the track's colour; names 10 px (selected: 500); header 11 px / 500;
 values 15 px / 500 with 9 px units in mid; the chord root 30 px / 500, its quality 17 px / 500, the notes 11 px / 500.
+On the device the small faces are a pixel larger for legibility: X 10 px (the 9 px labels, units, chips) and S 12 px
+(the 11 px names, values, rows), each set on the smaller size's baseline and line height (tools/gen_aa_font.py lifts
+them a row), so every position below holds; the mocks keep 9 / 11 px.
 
 Stage (`stage_note_overlay`), all positions in device pixels:
 

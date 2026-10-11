@@ -201,8 +201,14 @@ static void cover(int32_t x0, int32_t y0, int32_t x1, int32_t y1)
         int touch = b->x0 < x1 && x0 < b->x1 && b->y0 < y1 && y0 < b->y1;
         if (in) continue;
         if (touch && !(b->flags & 48u)) finding("hidden in part by a later draw", b, 0);
-        if (touch && (b->flags & 48u)) scr[k++] = *b;   /* split across bands / scrolled: drawn on purpose */
-        else scr[k++] = *b;
+        scr[k] = *b;
+        if (touch && (b->flags & 48u) && x0 <= b->x0 && b->x1 <= x1) {   /* split across bands / scrolled / dimmed
+                                                         * under a popup: drawn on purpose; what is left of it (a sheet
+                                                         * drawn in slices covers it in turn) */
+            if (y0 <= b->y0) scr[k].y0 = (int16_t)y1;
+            else if (b->y1 <= y1) scr[k].y1 = (int16_t)y0;
+        }
+        k++;
     }
     nscr = k;
 }

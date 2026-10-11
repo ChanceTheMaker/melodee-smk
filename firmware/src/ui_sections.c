@@ -179,7 +179,7 @@ static void tabs_draw(const char *const *name, uint32_t n, uint32_t cur, uint32_
         if (x + w > 236)
             break;
         if (on)
-            cv_rrect(x, 1, w, 14, 4, T_THEME, T_BG), cv_rrect(x + 1, 2, w - 2, 12, 3, ux_mix(T_BG, T_THEME, 22), T_THEME);
+            cv_rrect(x, 0, w, 16, 5, T_THEME, T_BG), cv_rrect(x + 1, 1, w - 2, 14, 4, ux_mix(T_BG, T_THEME, 22), T_THEME);
         cv_text_c(x + w / 2, 3, &AF_X, name[k], on ? T_THEME : far ? T_DIM : T_MID, on ? ux_mix(T_BG, T_THEME, 22) : T_BG);
         x += w + 3;
     }
