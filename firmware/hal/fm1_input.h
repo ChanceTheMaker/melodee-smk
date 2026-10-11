@@ -36,10 +36,9 @@
  * fm1_enc_take() returns the steps.
  * LEDs: set fm1_led[col] (packed row bits, bit1 PA5..bit4 PA8); they are lit
  * while that column is selected. fm1_led_key/btn helpers address them by id.
- * fm1_led_dim[plane][col] LEDs are lit one frame in (fm1_led_dim_mask[plane] + 1),
- * staggered by column: dimmer levels from the ~900 Hz frame rate, at no cost per
- * tick. Three planes, each with its own level (the UI: idle keys, idle buttons, and
- * the breathing ones, whose level the UI sweeps over time).
+ * fm1_led_dim[plane][col] LEDs pulse every frame for 1/(mask + 1) of their
+ * column's slot. TIMER2 ends these pulses, retaining the ~900 Hz refresh at
+ * every brightness. Three planes: idle keys, idle buttons and breathing.
  */
 #pragma once
 #include <stdint.h>
@@ -96,12 +95,14 @@ static volatile struct {
     int16_t enc_steps[FM1_NENC]; /* + = clockwise */
     uint32_t frames;
 } fm1_in;
-static uint8_t fm1_led[FM1_NCOL];
-static uint8_t fm1_led_dim[3][FM1_NCOL];
-static uint8_t fm1_led_dim_mask[3];       /* 0 = full, 1 = 1/2, 3 = 1/4, 7 = 1/8 of the frames */
+static volatile uint8_t fm1_led[FM1_NCOL];
+static volatile uint8_t fm1_led_dim[3][FM1_NCOL];
+static volatile uint8_t fm1_led_dim_mask[3]; /* 0 full, 1 half, 3 quarter, 7 eighth, 0xFF dark */
+#include "fm1_led_pwm.h"
 
-/* scan diagnostics (console `inp`, read and cleared by the main loop): the gap between ticks
- * = the on-time of the column lit in it, in TIMER4 ticks (24 MHz) */
+/* scan diagnostics (console `inp`, read and cleared by the main loop): the gap
+ * between ticks = the selected column's slot, in TIMER4 ticks (24 MHz).
+ * Dim rows now turn off earlier within that slot. */
 #define FM1_GAP_BINS 8u                /* < 0.15, 0.3, 0.6, 1.2, 2.4, 4.8, 9.6 ms, longer */
 static volatile struct {
     uint32_t last, gap_max, gap_hist[FM1_GAP_BINS];
@@ -114,19 +115,15 @@ static volatile struct {
     uint32_t kb_n, kb_sum, kb_max, dac_sum, dac_max;
 } fm1_in_stat;
 
-static void fm1__led_lines(uint32_t rowmask)       /* row bit 1 PA9, 2 PA10, 3 PH6, 4 PH9 */
+static void fm1__led_plan(uint32_t p, uint8_t rows[4])
 {
-    uint32_t a = FM1_PR(FM1_PA, FM1_OUT) & ~((1u << 9) | (1u << 10));
-    uint32_t h = FM1_PR(FM1_PH, FM1_OUT) & ~((1u << 6) | (1u << 9));
-    FM1_PR(FM1_PA, FM1_OUT) = a | (rowmask & 2u) << 8 | (rowmask & 4u) << 8;
-    FM1_PR(FM1_PH, FM1_OUT) = h | (rowmask & 8u) << 3 | (rowmask & 16u) << 5;
-}
-
-static uint32_t fm1__led_col(uint32_t p)          /* LED rows of column p in this frame (the dim planes in theirs) */
-{
-    uint32_t f = fm1_in.frames + p;
-    return fm1_led[p] | ((f & fm1_led_dim_mask[0]) ? 0u : fm1_led_dim[0][p]) |
-           ((f & fm1_led_dim_mask[1]) ? 0u : fm1_led_dim[1][p]) | ((f & fm1_led_dim_mask[2]) ? 0u : fm1_led_dim[2][p]);
+    uint8_t dim[3], masks[3];
+    uint32_t i;
+    for (i = 0; i < 3u; i++) {
+        dim[i] = fm1_led_dim[i][p];
+        masks[i] = fm1_led_dim_mask[i];
+    }
+    fm1_led_pwm_plan(rows, fm1_led[p], dim, masks);
 }
 
 static void fm1__sr_word(uint32_t w)
@@ -237,14 +234,26 @@ static void fm1__frame(void);
 static void fm1_input_scan(void)
 {
     uint32_t p;
+    fm1_led_pwm_cancel();
     for (p = 0; p < FM1_NCOL; p++) {
+        uint8_t rows[4];
+        uint32_t phase, start;
         fm1__led_lines(0);
+        fm1__led_plan(p, rows);
         fm1__sr_word(0xFFFFu ^ (1u << p) ^ (p < 2u ? 1u << (11u + p) : 0u));
         fm1__wait(FM1_SETTLE_US);
         fm1_in.raw[p] = (uint8_t)fm1__rows();
         fm1__keys(p);
-        fm1__led_lines(fm1__led_col(p));
-        fm1__wait(FM1_LED_US);
+        start = fm1_ticks();
+        fm1__led_lines(rows[0]);
+        for (phase = 1; phase < 4u; phase++) {
+            uint32_t due = (FM1_LED_US * FM1_TICKS_PER_US) >> (4u - phase);
+            while ((uint32_t)(fm1_ticks() - start) < due)
+                FM1_INPUT_IDLE();
+            fm1__led_lines(rows[phase]);
+        }
+        while ((uint32_t)(fm1_ticks() - start) < FM1_LED_US * FM1_TICKS_PER_US)
+            FM1_INPUT_IDLE();
     }
     fm1__led_lines(0);
     fm1__frame();
@@ -311,8 +320,10 @@ static void fm1__frame(void)
 static uint8_t fm1__tick_col;
 static void fm1_input_tick(void)
 {
+    uint8_t rows[4];
     uint32_t p = fm1__tick_col, n = p + 1u == FM1_NCOL ? 0u : p + 1u;
     uint32_t t0 = fm1_ticks(), g = t0 - fm1_in_stat.last, b = 0;
+    fm1_led_pwm_cancel();
     fm1__led_lines(0);
     fm1_in_stat.last = t0;
     while (b < FM1_GAP_BINS - 1u && g >= (150u * FM1_TICKS_PER_US << b))
@@ -324,8 +335,10 @@ static void fm1_input_tick(void)
     if (g > fm1_in_stat.on_max[p])
         fm1_in_stat.on_max[p] = g;
     fm1_in.raw[p] = (uint8_t)fm1__rows();          /* column p has been latched one tick */
+    fm1__led_plan(n, rows);
     fm1__sr_word(0xFFFFu ^ (1u << n) ^ (n < 2u ? 1u << (11u + n) : 0u));
-    fm1__led_lines(fm1__led_col(n));
+    g = fm1_ticks() - t0;
+    fm1_led_pwm_begin(rows, g < 100u * FM1_TICKS_PER_US ? 100u * FM1_TICKS_PER_US - g : 1u);
     fm1__tick_col = (uint8_t)n;
     fm1__keys(p);                                  /* its keys now: no wait for the frame's end */
     if (n == 0u)
