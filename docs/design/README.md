@@ -45,9 +45,12 @@ values 15 px / 500 with 9 px units in mid; the chord root 30 px / 500, its quali
 
 Stage (`stage_note_overlay`), all positions in device pixels:
 
-- Header, 18 px: play glyph at x 8; BPM 11 px / 500 at x 20; four track dots (r 2.5, x 54 + 8 k, y 11: the selected
-  white, the others dim); at the right a context chip 82 x 14 r 4 at x 150, filled in the track's colour, its text
-  9 px / 500 in the background colour (the engine: PROPHET-5, 909 KIT ..).
+- Header, 18 px: play glyph at x 8; BPM 11 px / 500 at x 20; then, only when they apply, the REC mark (12 px, REC
+  red: filled, the selected track armed; a ring, another track armed), the octave shift as an outlined pill ("+2",
+  "-1") and a song's row ("ROW 3"), then (a page) its dots; at the right a context chip 82 x 14 r 4 at x 150, filled
+  in the track's colour, its text 9 px / 500 in the background colour (the engine: PROPHET-5, 909 KIT ..). No track
+  dots: Stage's columns say which track, a page's sound bar starts with the track's numeral (filled in its colour),
+  then the engine and the sound.
 - Cards: 54 x 44 at x 4 + 58 k, y 22, r 6, surface; label 8.5 px at baseline 12, value 15 px at baseline 30, unit after
   it, gauge 42 x 3 r 1.5 at y 36 (line, filled in the track's colour). The knob turning: a fill of 22 % track colour
   over the surface, outlined in the track's colour.
