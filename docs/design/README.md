@@ -112,8 +112,9 @@ TAKE JAM: REC held on SONG (elsewhere REC held captures).
   USER on its slot, no sheet popped up (Kerem, 2026-10-10); OCT+ its sheet, on Save here (SAVE, OCT+, OCT+, OCT+). MOTION: no chips, its lanes (a parameter each,
   scaled to what it moves through, the playhead across); a lane's sheet: Play, Clear <lane>, Clear all motion. MOD:
   the four routes as rows (source -> destination, the amount's bar from the middle), the knobs' chips at the bottom.
-- **Picker**: a knob whose value is a list (wave, MOD source / destination, chord, delay division) shows the list
-  around its value while it turns, gone ST_KNOB_MS after the last turn; over the page as it is, not dimmed (2026-10-10:
+- **Picker**: a knob whose value is a list of names (wave, MOD source / destination, chord, delay division) shows the
+  list around its value while it turns (a list of numbers, such as GLO's DRUM channel, FM6's algorithm or a CZ
+  envelope step, steps on its card like its neighbours: Kerem, 2026-10-11), gone ST_KNOB_MS after the last turn; over the page as it is, not dimmed (2026-10-10:
   it comes with every turn of such a knob, and dimming sent the whole screen twice). SCALES keeps its own list page
   (Kerem: the list is intuitive), no picker.
 

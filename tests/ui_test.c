@@ -1965,6 +1965,18 @@ static int test_popups(void)
     bad += check("POPUPS: another knob turning closes it", !pop.on);
     turn(EN_K1, 1); press(B_OCTDN);
     bad += check("POPUPS: OCT- closes the picker (the page stays), no octave", !pop.on && !ui.home && song.octave == o);
+    {   /* a list of numbers steps on its card, as its neighbours do: GLO's DRUM channel (OFF, 1-16), FM6's ALG */
+        int32_t ch;
+        int ok;
+        ui_power_on(); go_title("SYSTEM"); frame();
+        ch = settings_drumch;
+        turn(EN_K2, 1);
+        ok = !pop.on && settings_drumch == ch + 1;
+        turn(EN_K1, 1); turn(EN_K3, 1);
+        ok &= !pop.on;
+        set_engine_of(TSEL, ENGI_FM6); go_title("ALGO"); frame(); turn(EN_K1, 1);
+        bad += check("POPUPS: number lists (DRUM channel, FM6 ALG) step inline like MIDI and ROUT: no picker", ok && !pop.on);
+    }
     {   /* list pages (ui_list.c): KNOB 2 the row, KNOB 1 its value, OCT+ its list (SCL's Scale: SCALES), OCT- Stage */
         ui_power_on(); go_title("VOICE"); frame();
         o = TSEL->p[P_DETUNE];

@@ -3,7 +3,8 @@
  * An action sheet: what can be done with the page (OCT+ held; a "..." in the header says there is one) or with the
  * thing its cursor is on: a card from the bottom, its rows; KNOB 2 the row, KNOB 1 a row's value, OCT+ does it (a
  * destructive one asks its question first), OCT- closes.
- * A picker: a knob whose value is a name from a list (a wave, a source, a division) turning on a page: the names
+ * A picker: a knob whose value is a name from a list (a wave, a source, a division; not a list of numbers) turning
+ * on a page: the names
  * around its value in a card under its ring; it goes ST_KNOB_MS after the last turn, on OCT- or when another knob
  * turns. The knob edits as ever; the page under it waits. Included by ui_draw.c */
 typedef struct {
@@ -328,6 +329,20 @@ static void sheet_input(int32_t k1, int32_t k2, uint32_t oct)
 /* knob c turned on a page: its picker when its value is a name from a long list; another knob: the picker goes.
  * Not on a screen of its own: SCALES is the scales' list itself (Kerem: the picker covered it) */
 static int own_screen(void);                            /* ui_draw.c */
+/* a list of numbers (a MIDI channel, an algorithm, an envelope step; one name such as OFF among them): its value steps
+ * on the card as MIDI's and ROUT's do, no picker (Kerem, 2026-10-11) */
+static int pick_numbers(const param_desc_t *d)
+{
+    uint32_t named = 0;
+    int32_t v;
+    for (v = d->min; v <= d->max; v++) {
+        const char *s = d->names[v];
+        while (*s >= '0' && *s <= '9')
+            s++;
+        named += *s || s == d->names[v];
+    }
+    return named <= 1u;
+}
 static void pick_touch(uint32_t c)
 {
     int16_t *vp;
@@ -337,7 +352,7 @@ static void pick_touch(uint32_t c)
     if (ui.home || pop.on == POP_SHEET || own_screen())
         return;
     d = page_desc(cur_page(), c, &vp);
-    if (!d || !vp || d->fmt != F_ENUM || !d->names || d->max - d->min < 4)
+    if (!d || !vp || d->fmt != F_ENUM || !d->names || d->max - d->min < 4 || pick_numbers(d))
         return;
     if (pop.on != POP_PICK)
         ui.force = 1;                                   /* (the page dimmed under it) */
