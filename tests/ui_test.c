@@ -3901,9 +3901,9 @@ static int test_chord_page(void)
     screen_clear(); ui.force = 1; ui_draw();
     bad += check("  CHRD OFF: the page says what to do, MONO gray", screen_gray());
     turn(EN_K1, 1); frame();
-    turn(EN_K2, 1); frame(); turn(EN_K1, 1); frame();
-    bad += check("  (a list) KNOB 1: CHRD DIA3; KNOB 2 the next row, KNOB 1: VOIC OPEN",
-                 t->p[P_CHRD] == CH_DIA3 && t->p[P_VOIC] == VC_OPEN);
+    turn(EN_K2, 1); frame();
+    bad += check("  (its own knobs, no list: two settings) KNOB 1: CHRD DIA3, KNOB 2: VOIC OPEN",
+                 t->p[P_CHRD] == CH_DIA3 && t->p[P_VOIC] == VC_OPEN && !list_on());
     key_down(7); frame();                                          /* C4 in C (SCALE CHR: the major of C) */
     ok = gates() == 3u && chord_last[song.sel].root == 60;
     screen_clear(); ui.force = 1; ui_draw();

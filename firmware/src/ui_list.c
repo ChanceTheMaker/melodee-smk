@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
 /* List pages (docs/design README "Pages: lists or knobs", mock/r6_pages SCL): the pages one sets and leaves as a list,
  * a row a setting: KNOB 2 the row, KNOB 1 its value, OCT+ a list value's whole list (SCL's Scale: the SCALES page),
- * OCT- Stage (TEMPO, GLOBAL, SYSTEM stay knobs: BPM and TUNE are turned while playing). A list may gather a few
+ * OCT- Stage. Only what has more than four settings (Kerem, 2026-10-11: four or fewer are a page's own four knobs;
+ * TEMPO, GLOBAL, SYSTEM stay knobs too: BPM and TUNE are turned while playing). A list may gather a few
  * pages (VOICE 1-3, FM6's LFO and controller pages): the
  * others leave the SELECT round (list_gone). The rows' labels and values are the pages' own (draw_column captures
  * them: CS_CAPTURE); a page's picture under its rows (SCL: the octave, the scale lit; CHORD, LFO 2: their graphs).
@@ -11,15 +12,8 @@ enum { LP_NONE, LP_SCALE, LP_GRAPH };
 typedef struct { const char *title; uint8_t pic, n; lrow_t row[16]; } list_t;
 static const list_t LISTS[] = {
     {"SCL", LP_SCALE, 5, {{"SCL", 0}, {"SCALES", 1}, {"SCL", 2}, {"SCL", 3}, {"SCL", 1}}},
-    {"CHORD", LP_GRAPH, 2, {{"CHORD", 0}, {"CHORD", 1}}},
-    {"MPC", LP_NONE, 1, {{"MPC", 0}}},
     {"VOICE", LP_NONE, 9, {{"VOICE", 0}, {"VOICE", 1}, {"VOICE", 2}, {"VOICE", 3}, {"VOICE 2", 0}, {"VOICE 2", 1},
                            {"VOICE 2", 2}, {"VOICE 2", 3}, {"VOICE 3", 0}}},
-    {"ENV DEST", LP_NONE, 3, {{"ENV DEST", 0}, {"ENV DEST", 1}, {"ENV DEST", 2}}},
-    {"LFO DEST", LP_NONE, 4, {{"LFO DEST", 0}, {"LFO DEST", 1}, {"LFO DEST", 2}, {"LFO DEST", 3}}},
-    {"LFO 2", LP_GRAPH, 3, {{"LFO 2", 0}, {"LFO 2", 1}, {"LFO 2", 2}}},
-    {"ARP 2", LP_NONE, 4, {{"ARP 2", 0}, {"ARP 2", 1}, {"ARP 2", 2}, {"ARP 2", 3}}},
-    {"DLY 2", LP_NONE, 2, {{"DLY 2", 0}, {"DLY 2", 1}}},
     {"FM LFO", LP_NONE, 7, {{"FM LFO", 0}, {"FM LFO", 1}, {"FM LFO", 2}, {"FM LFO", 3}, {"FM LFO 2", 0}, {"FM LFO 2", 1},
                             {"FM LFO 2", 2}}},
     {"FM BEND", LP_NONE, 16, {{"FM BEND", 0}, {"FM BEND", 1}, {"FM BEND", 2}, {"FM BEND", 3}, {"FM PORTA", 0},
