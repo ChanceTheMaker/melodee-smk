@@ -1003,14 +1003,16 @@ static void pv_draw(void)
             pv_strip(k);
         return;
     }
-    pv_tab_h = kind == PV_RINGS && sec_on() ? SEC_TAB_H : 0;
+    pv_tab_h = kind == PV_RINGS && (sec_on() || (designer_on() && designer_tabs_on())) ? SEC_TAB_H : 0;
     if (kind != PV_CURVE) {                             /* RINGS, FADERS */
         if (ui.force) {                                 /* (the parts then cover what they draw) */
             lcd_fill(0, H_HEAD, 240, PV_SOUND_Y - H_HEAD, T_BG);
             ui.graph_sig = 0;
         }
         draw_head();
-        if (pv_tab_h) {                                 /* an engine in sections: its tabs, the page noted */
+        if (pv_tab_h && designer_on()) {                /* the sound designer: its stages */
+            designer_tabs();
+        } else if (pv_tab_h) {                          /* an engine in sections: its tabs, the page noted */
             sec_note();
             sec_tabs();
         }

@@ -30,6 +30,12 @@ The minor release carries forward 1.0.2's native synth motion, pattern operation
 with both Standard (dual-core) and Single core firmware available in the installer and release
 downloads. Both builds have the same features and project format.
 
+**On-device sound designer:** choose a sound goal or an expert synthesis path, start with INIT
+or your current tone, switch on the features the sound needs (Prophet pulse, Poly-Mod and unison,
+FM operators, CZ-1 ring and noise), shape the engine's real controls, compare against the original
+and name your own preset. Open **Sound designer** from the HOME hold menu
+or a sound page's action sheet. [Controls and saving](docs/SOUND_DESIGNER.md).
+
 ## What's new in 1.0.2
 
 - **Two installer builds:** Standard uses both cores. Choose **Single core** if your FM-1 crashes,

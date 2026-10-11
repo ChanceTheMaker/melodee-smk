@@ -10,14 +10,14 @@ enum { MI_COLOR, MI_LOWCUT, MI_HOLD, MI_LIGHTS,
 #if MELODEE_USB_AUDIO
        MI_USB,
 #endif
-       MI_CLICK, MI_CLICK_LEVEL, MI_COUNTIN, MI_PREVIEW, MI_ADD, MI_LATCH, MI_ACCEL, MI_SCREEN, MI_PANEL, MI_ABOUT, MI_BACK,
+       MI_CLICK, MI_CLICK_LEVEL, MI_COUNTIN, MI_PREVIEW, MI_ADD, MI_LATCH, MI_ACCEL, MI_SCREEN, MI_PANEL, MI_ABOUT, MI_DESIGNER, MI_BACK,
        MI_COUNT };
 static const char *const MI_NAME[MI_COUNT] = {"COLOR", "SPEAKER", "HOLD", "LIGHTS",
 #if MELODEE_USB_AUDIO
                                               "USB AUDIO",
 #endif
                                               "AUDIO CLICK", "CLICK LEVEL", "COUNT-IN", "NOTE PREVIEW", "CHORD ENTRY", "FX LATCH",
-                                              "KNOB ACCEL", "SCREEN OFF", "CALIBRATION", "ABOUT", "BACK"};
+                                              "KNOB ACCEL", "SCREEN OFF", "CALIBRATION", "ABOUT", "SOUND DESIGNER", "BACK"};
 #if MELODEE_USB_AUDIO
 /* USB AUDIO's four settings, as ua_off_want (UA_OFF_OUT | UA_OFF_IN) */
 static const char *const MI_USB_NAME[4] = {"IN+OUT", "IN", "OUT", "OFF"};
@@ -414,6 +414,9 @@ static void menu_input(uint32_t oct)                  /* oct: ui_input.c oct_tap
         case MI_PANEL:
             panel_setup();
             ui.force = 1;
+            break;
+        case MI_DESIGNER:
+            menu_close();designer_open();
             break;
         case MI_ABOUT:
             ui.menu = 2;

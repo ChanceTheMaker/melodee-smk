@@ -189,12 +189,61 @@ static void list_scale_pic(int32_t y, int32_t h)
     cv_blit(0, (uint32_t)y);
 }
 
+/* n rows from LIST_Y0, row r's label and value from cap (1: a list behind it, ">"), row lifted, first .. first + vis
+ * shown, where they are as a bar at the right */
+static void list_rows(uint32_t n, uint32_t row, uint32_t first, uint32_t vis,
+                      int (*cap)(uint32_t r, char *lb, char *v, uint16_t *vc))
+{
+    uint32_t r;
+    int32_t top;
+    char lb[16], v[16];
+    uint16_t vc;
+    for (top = 0; top < (int32_t)vis * LIST_ROW; ) {   /* in slices between rows */
+        int32_t sh = (int32_t)vis * LIST_ROW - top <= 110 ? (int32_t)vis * LIST_ROW - top : 110;
+        cv_begin(240, (uint32_t)sh, T_BG);
+        cv_oy = -top;
+        for (r = first; r < n && r < first + vis; r++) {
+            int32_t y = (int32_t)(r - first) * LIST_ROW;
+            int on = r == row, more;
+            uint16_t bg = on ? T_LIFT : T_BG;
+            if (y + LIST_ROW <= top || y >= top + sh)
+                continue;
+            more = cap(r, lb, v, &vc);
+            if (on) {
+                cv_rect(0, y, 240, 20, T_LIFT);
+                cv_rect(0, y, 3, 20, T_THEME);
+            }
+            cv_text_on(12, y + 3, &AF_S, lb, on ? T_TEXT : T_SEC, bg);
+            {
+                int32_t w = text_w(&AF_S, v), x = 228 - (w < 104 ? w : 104);
+                cv_free_text(x, y + 3, &AF_S, v, vc == T_DIM ? T_DIM : on ? T_THEME : T_MID, bg, 104);
+            }
+            if (more)
+                cv_text_on(230, y + 2, &AF_S, ">", on ? T_THEME : T_DIM, bg);
+        }
+        if (n > vis) {
+            int32_t th = (int32_t)vis * LIST_ROW * (int32_t)vis / (int32_t)n;
+            int32_t ty = (int32_t)((vis * LIST_ROW - (uint32_t)th) * first / (n - vis));
+            cv_rect(237, 0, 2, (int32_t)vis * LIST_ROW, T_LINE);
+            cv_rect(237, ty, 2, th, T_THEME);
+        }
+        cv_oy = 0;
+        cv_blit(0, (uint32_t)(LIST_Y0 + top));
+        top += sh;
+    }
+}
+static const list_t *list_drawn;                        /* (list_text) */
+static int list_text(uint32_t r, char *lb, char *v, uint16_t *vc)
+{
+    list_cap(&list_drawn->row[r], lb, v, vc);
+    return str_eq(list_drawn->row[r].page, "SCALES");  /* (OCT+: its list) */
+}
 static void list_draw(void)
 {
     const list_t *l = list_on();
     uint32_t r, sig, vis;
-    int32_t pic_y = l->pic == LP_SCALE ? 142 : l->pic == LP_GRAPH ? 96 : PV_SOUND_Y, top;
-    char lb[12], v[16];
+    int32_t pic_y = l->pic == LP_SCALE ? 142 : l->pic == LP_GRAPH ? 96 : PV_SOUND_Y;
+    char lb[16], v[16];
     uint16_t vc;
     if (ui.force) {
         lcd_fill(0, H_HEAD, 240, PV_SOUND_Y - H_HEAD, T_BG);
@@ -217,39 +266,8 @@ static void list_draw(void)
     }
     if (ui.force || sig != lst.sig) {
         lst.sig = sig;
-        for (top = 0; top < (int32_t)vis * LIST_ROW; ) {   /* in slices between rows */
-            int32_t sh = (int32_t)vis * LIST_ROW - top <= 110 ? (int32_t)vis * LIST_ROW - top : 110;
-            cv_begin(240, (uint32_t)sh, T_BG);
-            cv_oy = -top;
-            for (r = lst.first; r < l->n && r < lst.first + vis; r++) {
-                int32_t y = (int32_t)(r - lst.first) * LIST_ROW;
-                int on = r == lst.row;
-                uint16_t bg = on ? T_LIFT : T_BG;
-                if (y + LIST_ROW <= top || y >= top + sh)
-                    continue;
-                list_cap(&l->row[r], lb, v, &vc);
-                if (on) {
-                    cv_rect(0, y, 240, 20, T_LIFT);
-                    cv_rect(0, y, 3, 20, T_THEME);
-                }
-                cv_text_on(12, y + 3, &AF_S, lb, on ? T_TEXT : T_SEC, bg);
-                {
-                    int32_t w = text_w(&AF_S, v), x = 228 - (w < 104 ? w : 104);
-                    cv_free_text(x, y + 3, &AF_S, v, vc == T_DIM ? T_DIM : on ? T_THEME : T_MID, bg, 104);
-                }
-                if (str_eq(l->row[r].page, "SCALES"))   /* (OCT+: its list) */
-                    cv_text_on(230, y + 2, &AF_S, ">", on ? T_THEME : T_DIM, bg);
-            }
-            if (l->n > vis) {                           /* where the rows are in the list */
-                int32_t th = (int32_t)vis * LIST_ROW * (int32_t)vis / (int32_t)l->n;
-                int32_t ty = (int32_t)((vis * LIST_ROW - (uint32_t)th) * lst.first / (l->n - vis));
-                cv_rect(237, 0, 2, (int32_t)vis * LIST_ROW, T_LINE);
-                cv_rect(237, ty, 2, th, T_THEME);
-            }
-            cv_oy = 0;
-            cv_blit(0, (uint32_t)(LIST_Y0 + top));
-            top += sh;
-        }
+        list_drawn = l;
+        list_rows(l->n, lst.row, lst.first, vis, list_text);
     }
     if (l->pic == LP_SCALE) {
         static uint32_t ps;

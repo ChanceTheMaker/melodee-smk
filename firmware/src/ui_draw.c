@@ -161,7 +161,8 @@ static void head_chip_text(char *b)
 {
     const page_t *pg = cur_page();
     uint32_t e = TSEL->eng_req % NENGINES;
-    if (new_on()) {                                     /* NEW SONG */
+    if (designer_on() && !name_on() && designer_head_chip(b)) {   /* the designer's START, FEATURES, original */
+    } else if (new_on()) {                                     /* NEW SONG */
         str_cpy(b, "NEW SONG", 16);
     } else if (ptc_on()) {                              /* PATTERNS' Copy to: "copy 3 to 5" */
         str_cpy(b, "copy 1 to 1", 16);
@@ -191,7 +192,9 @@ static void head_pages(int32_t x1)                     /* (x1: where the chip, o
     const page_t *pg = cur_page();
     uint32_t i, n = 0, k = 0, sc = sec_on() ? sec_of(ui.page) + 1u : 0u;
     int32_t x = 96;
-    for (i = 0; i < NPAGES; i++)                        /* (an engine in sections: the section's pages) */
+    if (designer_on() && !name_on())                    /* the designer: its stage's pages */
+        designer_pages(&n, &k);
+    else for (i = 0; i < NPAGES; i++)                   /* (an engine in sections: the section's pages) */
         if (PAGES[i].fam == pg->fam && page_visible(i) &&
             (!sc || (PAGES[i].scope == SC_FMOP ? PAGES[ui.page].scope == SC_FMOP : sec_of(i) + 1u == sc))) {
             if (i == ui.page)
@@ -945,6 +948,10 @@ static void confirm_text(char *a, char *b)
         str_cpy(a + str_len(a), "?", 2);
         user_name(k, b);                             /* the sound stored there */
         break;
+    case CF_DISCARD_DESIGN:
+        str_cpy(a, "DISCARD THE DESIGN?", 24);
+        str_cpy(b, "The original sound returns", 32);
+        break;
     case CF_ERASE_USER:
         str_cpy(a, "ERASE ", 24);
         user_label(a + str_len(a), k);
@@ -1005,6 +1012,7 @@ static void draw_confirm(void)
 #include "ui_slots.c"                                   /* PROJECT, USER, the STOREs: their slots */
 #include "ui_motion.c"                                  /* MOTION: its lanes */
 #include "ui_scales.c"                                  /* SCALES: a screen of its own */
+#include "ui_designer.c"                                /* guided native sound creation */
 static int own_screen(void)                             /* a page drawn whole by its own code, no cards or footer */
 {
     uint32_t g = cur_page()->graph;
@@ -1019,7 +1027,9 @@ static void draw_page(void)
         page_entered();
     }
     cursor_fix();
-    if (!own_screen() && slot_kind()) {                 /* a slot page (ui_slots.c) */
+    if (designer_screen()) {                            /* the sound designer's START, FEATURES (ui_designer.c) */
+        designer_draw();
+    } else if (!own_screen() && slot_kind()) {          /* a slot page (ui_slots.c) */
         slot_draw();
     } else if (!own_screen() && motion_page()) {        /* MOTION's lanes (ui_motion.c) */
         motion_draw();

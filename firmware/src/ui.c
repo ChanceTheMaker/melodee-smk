@@ -82,6 +82,7 @@ static uint8_t sync_reload;                  /* engine / preset / project / user
 #define H_FOOT 42
 
 static struct {
+    uint8_t designer_mode;       /* the sound designer: START, the stages (ui_designer.c) */
     uint8_t home;
     uint8_t drum_sound;
     uint8_t page;                /* index into PAGES */
@@ -148,11 +149,23 @@ static struct {
     int16_t roll_bpm;            /* the BPM last drawn */
 } ui;
 
+static int designer_on(void) { return ui.designer_mode != 0; }
+static void designer_open(void);
+static void designer_draw(void);
+static int designer_screen(void);
+static int designer_input(uint32_t pressed, uint32_t notes);
+static void designer_close(int discard);
+static int designer_head_chip(char *b);
+static void designer_pages(uint32_t *n, uint32_t *k);
+static int designer_tabs_on(void);
+static void designer_tabs(void);
+static void (*designer_quit)(int discard);   /* designer_close while it is open (project.c: a project loading) */
+
 #include "screen.c"
 
 enum { CF_NONE, CF_CLEAR_SEQ, CF_CLEAR_TRK, CF_OVR_PROJ, CF_OVR_USER,
        CF_DEL_ROW, CF_CLEAR_SONG, CF_INIT_SOUND, CF_CLEAR_MOTION, CF_ERASE_USER, CF_TAKE_JAM, CF_NEW_SONG, CF_ERASE_PROJ,
-       CF_DEL_PAT, CF_PASTE_PAT };   /* ui.confirm: REC held on SEQ / ARP, on TRACKS; SAVE over a used slot; a pattern
+       CF_DEL_PAT, CF_PASTE_PAT, CF_DISCARD_DESIGN };   /* ui.confirm: REC held on SEQ / ARP, on TRACKS; SAVE over a used slot; a pattern
                                       * over the user's steps; USER ERASE; PATTERNS: Delete pattern, Copy to over a
                                       * pattern in use */
 
@@ -671,7 +684,7 @@ static void load_begin(track_t *t, uint32_t what)
     u = undo_last();
     if (undo_top && u->keep && u->pattern_gen == t->pattern_gen && u->trk == i + 1u && track_sig(t) == u->after) {
         u->what |= (uint8_t)what;                 /* browsing on: the copy from before the first load stays */
-        motion_reset(t);
+        if(!designer_on())motion_reset(t);
         return;
     }
     u->keep = 0;
@@ -700,7 +713,7 @@ static void load_begin(track_t *t, uint32_t what)
     u->pat = pat_sig[i];
     u->patn = pat_last[i];
     motion_snapshot_track(t, &u->motion_backup);
-    motion_reset(t);
+    if(!designer_on())motion_reset(t);
 }
 
 static void load_end(track_t *t)
