@@ -6,21 +6,20 @@ screen, FEATURES is a list page, and the shaping stages are the sound pages them
 
 ## Start
 
-Four rings over a large panel (the engine, and the choice in words), the keys under it:
+Three rings over a large panel (the engine, and the choice in words), the keys under it:
 
 | Control | Choice |
 | --- | --- |
 | KNOB 1 | ENGINE, from the normal selectable engine list |
-| KNOB 2 | GOAL: FREE, BASS, PAD, LEAD, KEYS, PLUCK or FX |
-| KNOB 3 | START: CURRENT or INIT |
-| KNOB 4 | PATH: GUIDED or EXPERT |
+| KNOB 2 | START: CURRENT, INIT, or INIT with a recipe: BASS, PAD, LEAD, KEYS, PLUCK, FX |
+| KNOB 3 | PAGES: MAIN (the engine's own pages) or ALL |
 | OCT+ | Design |
 | OCT- or HOME | Close without changing the sound |
 
-CURRENT preserves the selected sound. Its goal is a guide, not an automatic patch rewrite.
-INIT starts from the engine's native init patch and applies a small goal recipe. ANALOG starts
-with a neutral single saw; DRUM starts with its kit. Starting on another engine always uses INIT.
-The recipes are suggestions for exploration, not claims of reproducing an acoustic instrument.
+CURRENT keeps the selected sound exactly. INIT starts from the engine's native init patch; a
+recipe also applies a small starting gesture for that kind of sound. ANALOG starts with a neutral
+single saw; DRUM starts with its kit. On another engine CURRENT is not offered: it starts from
+INIT. The recipes are suggestions for exploration, not claims of reproducing an instrument.
 
 ## Stages
 
@@ -33,14 +32,19 @@ The recipes are suggestions for exploration, not claims of reproducing an acoust
 | SELECT | The pages, across the stages |
 | KNOB 1–4 | The page's own controls (a list page: KNOB 2 the row, KNOB 1 its value) |
 | SAVE | The original sound (header chip ORIGINAL); SAVE again: back to the design |
-| EDIT | Switch on what the last-turned dim control needs |
 | HOME | The designer's sheet |
 
 On a sound page the stages are the tabs under the header and the stage's pages are the header's
-dots; the chip names the page (with its operator or CZ line). Pages, rings, pictures, pickers and
-dimmed inactive controls are the normal ones. GUIDED and EXPERT both include the six FM
-operators; EXPERT adds keyboard scaling, full CZ envelope contours, pitch envelopes and
-controller pages.
+dots; the chip names the page (with its operator or CZ line). Under every stage, as under NEW
+SONG, the keys: OCT- back on the left, the sound's name, OCT+ on the right with the next stage's
+name (the last stage: Finish). Pages, rings, pictures and pickers are the normal ones.
+
+Each stage shows the engine's own pages first. FEATURES decides what is shaped: an FM operator
+switched off, or a CZ line that its line mode does not play, has no pages; an FM operator's pages
+come together, operator by operator. MAIN leaves out what repeats or refines: the track LFO and
+the modulation matrix on engines with LFOs of their own (Prophet, FM6, CZ-1) and on drum kits,
+LFO 2 and the matrix on SID, FM6's macro pages, keyboard scaling, CZ pitch envelopes and the
+second halves of CZ envelopes, bend and controller pages. ALL shows them.
 
 Nothing plays by itself: audition the sound on the keys, which always play it while designing
 (never the drum grid or a layer's shortcuts). PLAY starts or stops the pattern only when pressed. The track and the preset browsing stay
@@ -52,7 +56,7 @@ designer do not record motion. Other tracks' motion continues normally.
 
 The first stage builds the signal path before any shaping: a list page, a row for each feature
 of the instrument, its state at the right (Off is dim). KNOB 2 moves through the rows; KNOB 1
-switches the row on (right) or off (left), or steps VOICE and LINES; EDIT switches the row on.
+switches the row on (right) or off (left), or steps Voice and Lines.
 
 | Engine | Features |
 | --- | --- |
@@ -84,18 +88,23 @@ Drum kits have no feature stage.
 
 ## Dependencies
 
-A control whose path is off is dimmed, as on every sound page. Turning it alone never changes its
-dependencies. **EDIT** switches on what the last-turned control needs (header: PATH ON):
+A control whose path is off is dimmed, as on every sound page. In the designer, turning a dim
+control first switches on the feature it needs, as FEATURES would, and the header says which
+(PULSE A ON, POLY-MOD ON, UNISON ON, OP3 ON, LINE 2 ON ..); the turn then edits the control. A
+control that already sounds changes nothing else.
 
-- Prophet WIDTH A enables its pulse waveform and an audible oscillator level.
-- Prophet Poly-Mod connects a source amount and destination; unison count enables native unison.
-- Prophet LFO supplies a waveform, initial depth and destination.
-- A silent FM operator receives an output level and is switched on.
-- CZ vibrato receives depth; a disabled line can be selected. Inactive envelope points still
-  require deliberately setting END/SUS on the POINT page (header: SET END / SUS).
-- Track LFO controls can receive a pitch destination; DETUNE can enable track unison.
+- Prophet WIDTH A switches Pulse A on; Poly-Mod PW A switches Pulse A and Poly-Mod on; OSC B's
+  tuning switches Osc B on; filter envelope times switch Filter env on, its REL also Release.
+- Prophet VOICES and DETUNE switch native Unison on; LFO RATE, waves and INITIAL switch LFO on.
+- An FM operator that is off is switched on when its controls are turned (its level turned down
+  leaves it silent).
+- CZ vibrato's WAVE, RATE and DELAY give it depth; line 2's values, DETUNE and MOD select 1+2'.
+  An envelope step after its END stays as it is (header: AFTER THE END POINT): END and SUS are
+  set on the POINT page.
+- Track LFO controls with no destination give it a gentle pitch destination; DETUNE on VOICE
+  selects unison.
 
-Pulse, Poly-Mod and unison are already implemented in the Prophet renderer; FEATURES and EDIT make
+Pulse, Poly-Mod and unison are already implemented in the Prophet renderer; the designer makes
 them reachable. This does not change the synthesis model or claim calibrated hardware fidelity.
 
 ## Finish
@@ -119,7 +128,8 @@ without restoring anything over the loaded project.
 ## Validation
 
 `tests/designer_test.c` drives the actual panel input and native setters: current-sound
-preservation, dependency repairs, compare/discard across engines, the sheet's Keep, Save as
+preservation, START's steps, dependencies switched on by turning dim controls (and nothing else
+changed by controls that sound), the pages FEATURES leaves out, compare/discard across engines, the sheet's Keep, Save as
 user (to the native bank, named) and Discard, OCT and PRESETS/SELECT navigation, the menu over an
 open design, project reload, motion isolation and expert-page coverage. It renders every
 engine/goal recipe through the DSP. Every feature on Prophet, FM6, CZ-1 and SID is switched off

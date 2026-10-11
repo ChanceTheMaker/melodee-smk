@@ -1965,6 +1965,18 @@ static int test_popups(void)
     bad += check("POPUPS: another knob turning closes it", !pop.on);
     turn(EN_K1, 1); press(B_OCTDN);
     bad += check("POPUPS: OCT- closes the picker (the page stays), no octave", !pop.on && !ui.home && song.octave == o);
+    {   /* a list of numbers steps on its card, as its neighbours do: GLO's DRUM channel (OFF, 1-16), FM6's ALG */
+        int32_t ch;
+        int ok;
+        ui_power_on(); go_title("SYSTEM"); frame();
+        ch = settings_drumch;
+        turn(EN_K2, 1);
+        ok = !pop.on && settings_drumch == ch + 1;
+        turn(EN_K1, 1); turn(EN_K3, 1);
+        ok &= !pop.on;
+        set_engine_of(TSEL, ENGI_FM6); go_title("ALGO"); frame(); turn(EN_K1, 1);
+        bad += check("POPUPS: number lists (DRUM channel, FM6 ALG) step inline like MIDI and ROUT: no picker", ok && !pop.on);
+    }
     {   /* list pages (ui_list.c): KNOB 2 the row, KNOB 1 its value, OCT+ its list (SCL's Scale: SCALES), OCT- Stage */
         ui_power_on(); go_title("VOICE"); frame();
         o = TSEL->p[P_DETUNE];
@@ -3901,9 +3913,9 @@ static int test_chord_page(void)
     screen_clear(); ui.force = 1; ui_draw();
     bad += check("  CHRD OFF: the page says what to do, MONO gray", screen_gray());
     turn(EN_K1, 1); frame();
-    turn(EN_K2, 1); frame(); turn(EN_K1, 1); frame();
-    bad += check("  (a list) KNOB 1: CHRD DIA3; KNOB 2 the next row, KNOB 1: VOIC OPEN",
-                 t->p[P_CHRD] == CH_DIA3 && t->p[P_VOIC] == VC_OPEN);
+    turn(EN_K2, 1); frame();
+    bad += check("  (its own knobs, no list: two settings) KNOB 1: CHRD DIA3, KNOB 2: VOIC OPEN",
+                 t->p[P_CHRD] == CH_DIA3 && t->p[P_VOIC] == VC_OPEN && !list_on());
     key_down(7); frame();                                          /* C4 in C (SCALE CHR: the major of C) */
     ok = gates() == 3u && chord_last[song.sel].root == 60;
     screen_clear(); ui.force = 1; ui_draw();
