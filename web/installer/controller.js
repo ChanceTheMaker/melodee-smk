@@ -1,8 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-only
 import {buildSmkPublicPackage} from './smk37-package.js';
-import {parsePackage,installSmk,installStockSmk} from './smk37-update.js';
+import {parsePackage,installSmk,installStockSmk} from './smk37-update.js?v=smk-flow-r1';
 import {STOCK_SOURCES} from './smk37-stock.js';
 const $=id=>document.getElementById(id);
+const dialog=document.getElementById('loader-confirm');
+async function confirmGeneric({identity,port,model}){
+  document.getElementById('loader-identity').textContent=identity+' on '+port;
+  document.getElementById('loader-model').textContent=model;
+  log('Confirm the connected Elite in the dialog to continue this installation.');
+  dialog.returnValue='cancel';
+  return new Promise(resolve=>{
+    dialog.addEventListener('close',()=>resolve(dialog.returnValue==='continue'),{once:true});
+    dialog.showModal();
+  });
+}
 let manifest=null,prepared=null,preparing=false,installing=false,generation=0;
 const support=window.isSecureContext&&typeof navigator.requestMIDIAccess==='function';
 const log=text=>{const line=new Date().toISOString()+' '+text;console.log(line);$('log').textContent+= '\n'+line;$('log').scrollTop=$('log').scrollHeight;};
@@ -32,7 +43,7 @@ async function prepare(){
   finally{if(request===generation){preparing=false;controls();}}
 }
 $('model').addEventListener('change',prepare);$('stock-file').addEventListener('change',prepare);$('prepare').addEventListener('click',prepare);$('confirm').addEventListener('change',controls);
-$('route').addEventListener('change',()=>{$('confirm').checked=false;$('route-note').textContent=$('route').value==='stock'?'Factory route: exact official Pro 016 or Elite 016 identity required. The matching official RAM loader must appear before installation continues. Elite handoff still needs confirmation.':'Requires the portable SMK updater (identity 922 or newer). Older private builds are refused before starting an update.';controls();});
+$('route').addEventListener('change',()=>{$('confirm').checked=false;$('route-note').textContent=$('route').value==='stock'?'Automatically detects stock firmware, an active loader, or Felucca / Sloop / Melodee SMK.':'Requires the portable SMK updater (identity 922 or newer). Older private builds are refused before starting an update.';controls();});
 $('install').addEventListener('click',async()=>{
   if($('install').disabled||!prepared)return;
   const pkg=prepared,route=$('route').value;installing=true;controls();
@@ -41,7 +52,7 @@ $('install').addEventListener('click',async()=>{
     status('Requesting MIDI permission. Keep the SMK powered and USB connected.');
     const access=await navigator.requestMIDIAccess({sysex:true});
     log('Starting explicit '+route+' installation.');
-    await (route==='stock'?installStockSmk:installSmk)(access,pkg,text=>{status(text);log(text);});
+    await (route==='stock'?installStockSmk:installSmk)(access,pkg,text=>{status(text);log(text);},{confirmGeneric});
     status('Installed '+manifest.firmware+'. Check the screen, keys and sound on the SMK. Device saves remain disabled.');
     $('confirm').checked=false;
   }catch(e){status(e.message,true);log('Installation stopped: '+e.message);$('confirm').checked=false;}

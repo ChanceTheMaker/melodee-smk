@@ -24,7 +24,7 @@ for name in ('LICENSE', 'LICENSING.md'):
 shutil.copytree(ROOT / 'LICENSES', out / 'LICENSES')
 # Do not silently promote the untested hardware candidate with the browser site.
 template = (web / 'installer.html').read_text(encoding='utf-8')
-head = template.split('<body', 1)[0].replace('<script type="module" src="installer/controller.js"></script>', '').replace('<link rel="stylesheet" href="installer/installer.css">', '')
+head = template.split('<body', 1)[0].replace('<script type="module" src="installer/controller.js?v=smk-flow-r1"></script>', '').replace('<link rel="stylesheet" href="installer/installer.css">', '')
 (out / 'installer.html').write_text(head + '''<body class="landing-page"><main>
 <header class="masthead"><h1 class="melodee-wordmark">melodee <span>SMK</span></h1></header>
 <section class="landing-section"><span class="release-badge">HARDWARE PORT / IN DEVELOPMENT</span>
