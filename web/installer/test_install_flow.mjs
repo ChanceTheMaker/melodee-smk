@@ -43,7 +43,7 @@ await test('wrong returned firmware rejected',{start:'exact',wrongReturn:true},[
 await test('Melodee 940 automatically uses portable package, not official image',{start:'melodee',portable:true,sends:2},[0xf0000000]);
 await test('portable loader automatically resumes without stock staging',{start:'portable-loader',portable:true},[0xf0000000]);
 await test('Melodee manual Update mode uses portable package',{start:'melodee',portable:true,manual:true,sends:2},[0xf0000000]);
-await test('old private updater refused without START',{start:'private'},[],/older private updater/);
+await test('old private updater refused without START',{start:'private'},[],/older (?:private )?updater/);
 await test('Felucca 922 automatically uses portable package',{start:'melodee',sourceVersion:922,sourceName:'Felucca',portable:true,sends:2},[0xf0000000]);
 await test('Sloop 936 automatically uses portable package',{start:'melodee',sourceVersion:936,sourceName:'Sloop',portable:true,sends:2},[0xf0000000]);
 console.log('No physical MIDI ports were opened.');

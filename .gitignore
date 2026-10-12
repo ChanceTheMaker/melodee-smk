@@ -10,3 +10,5 @@ web/firmware/*
 
 !web/firmware/melodee-smk-1.1.0-b1-candidate.bin
 !web/firmware/storage-audit.json
+
+!web/firmware/melodee-smk-1.1.0-b1-dc7-candidate.bin

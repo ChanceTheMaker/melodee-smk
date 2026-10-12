@@ -2,11 +2,11 @@
 
 Independent SMK-37 Pro & Elite port of [Melodee](https://github.com/keremimo/melodee), with the shared SMK Studio and simulator website.
 
-**Current release: 1.1.0-b1 — experimental public beta.**
+**Current release: 1.1.0-b1-dc7 - experimental dual-core public beta.**
 
-The public and local installers now offer b1 after passing its RAM-placement, protected-range, interrupted-write and backup-gate checks. See [the b1 test and storage guide](docs/SMK_BETA_TEST.md) for the exact release state and device checks.
+The public installer offers the same dc7 application tested on the owner’s SMK-37 Pro. FM6 and Prophet use the second core with serial fallback; other engines remain on CPU0. See the [release and storage guide](docs/SMK_BETA_TEST.md) and [dual-core evidence](docs/SMK_DUAL_CORE.md).
 
-The user has installed and played the earlier dev1 build on an SMK. The new b1 persistence, physical MIDI and USB audio changes still require device validation. The browser uses Melodee's C synthesis and UI compiled to WebAssembly; it is not a cycle-accurate emulator of the JieLi chip, USB hardware or Bluetooth radio.
+Pro tests confirmed FM6/Prophet playing, projects A-D and a general preset surviving restart, and four-channel 44.1 kHz PCM16 USB capture. Four-note stress tests recorded missed render deadlines and protective voice shedding, with no worker faults or USB capture errors. Elite and the remaining hardware paths still need testing. The browser uses Melodee's C synthesis and UI compiled to WebAssembly; it is not a cycle-accurate emulator of the JieLi chip, USB hardware or Bluetooth radio.
 
 ## Public website
 
@@ -14,7 +14,7 @@ The user has installed and played the earlier dev1 build on an SMK. The new b1 p
 - [Studio](https://chancethemaker.github.io/melodee-smk/editor.html?audio=1) and [Simulator](https://chancethemaker.github.io/melodee-smk/simulator.html)
 - [SMKLab and sibling firmware](https://chancethemaker.github.io/smklab/)
 
-The published b1 application is 581,252 bytes, SHA-256 `b03c3dfee7966e43e5f542a6c17c7f79e34df14283d8db83229fe3cc4abce40a`. Publication keeps `hardware_tested: false`; this beta is not a claim that the new physical integrations have passed. The Pages builder pins the application and storage-audit hashes so a local rebuild cannot silently become the public release.
+The published dc7 application is 581,532 bytes, SHA-256 `4426a29ad306a672464d778e44cb3a1238deae87d7b852dc86469f220987522c`. The manifest retains `hardware_tested: false` because validation is partial; its `hardware_validation` field records the specific Pro evidence and outstanding checks. The Pages builder pins the application and storage-audit hashes so a local rebuild cannot silently become the public release.
 
 ## Open locally
 
@@ -64,7 +64,7 @@ Native FM-1 key-layer shortcuts occupy the inner F3–G5 range; the full 37-key 
 
 ## Build and tests
 
-Source baseline: keremimo/melodee commit **01a78bd** (1.1.0). Integration branch: **feat/smk-hardware-beta**.
+Source baseline: keremimo/melodee commit **01a78bd** (1.1.0). Dual-core integration branch: **feature/smk-dual-core**.
 
 Generate native fonts/DSP tables with the upstream tools. Pillow must include Raqm; fonttools is also required. Zig 0.13.0 is the tested browser compiler:
 
@@ -75,13 +75,15 @@ node tests/smk_browser_test.mjs
 
 The browser builder writes web/audio/smk-engine.wasm and its SHA-256 manifest. Already generated tables can be reused by omitting --generate.
 
+The [SMK dual-core beta](docs/SMK_DUAL_CORE.md) reuses the upstream FM6/Prophet worker with serial fallback. dc7 also restores the missing SMK USB audio service call and smooths fader ADC noise. Browser synthesis remains single-core.
+
 For the hardware development image, use the upstream Linux JieLi toolchain (native Linux or WSL), set JIELI_TOOLCHAIN to its directory, and run:
 
 ```sh
-JIELI_DOCKER=0 python tools/build_melodee_smk.py
+JIELI_DOCKER=0 python tools/build_melodee_smk.py --dual-core
 ```
 
-Output is under build/melodee-smk-1.1.0-b1/. The candidate binary embeds an 8,160-byte RAM-only updater and advertises SMK-37_941. The manifest records memory bounds, SHA-256, capabilities, storage-audit hash and hardware-test status. Stage it for the website with `python tools/stage_melodee_smk.py`; do not feed the raw .bin to a vendor updater. The website packages it with a hash-checked official Pro/Elite 016 base entirely in the browser.
+Output is under build/melodee-smk-1.1.0-b1-dc7/. Omit `--dual-core` for a serial comparison. The candidate binary embeds an 8,160-byte RAM-only updater and advertises SMK-37_941. The manifest records memory bounds, SHA-256, capabilities, storage-audit hash and hardware-test status. Stage it for the website with `python tools/stage_melodee_smk.py --candidate build/melodee-smk-1.1.0-b1-dc7`; do not feed the raw .bin to a vendor updater. The website packages it with a hash-checked official Pro/Elite 016 base entirely in the browser.
 
 Automated runtime coverage: all five main engines produce audio; editor INFO, DUMP and all parameter descriptors; all 37 keys and 16 pad feedback bits; sustain/release; fresh-runtime restoration of projects A–D, all 32 patterns, native preset banks, general presets, favorites, settings and song chains; corrupt snapshot rejection without changing current music; read-only polling does not postpone autosave. Desktop/mobile browser checks cover pages, native editor connection and control rendering.
 
@@ -109,9 +111,9 @@ Verified: both stock container/CRC round trips, protected bytes unchanged, corru
 
 ## Hardware integration status
 
-The b1 source adds SMK-specific transactional storage, backup-gated initialization, TRS MIDI output for notes/expression and internal clock/Start/Stop, native 44.1 kHz USB audio, pad brightness and LCD sleep/wake. These features have host tests but still need the [device validation checklist](docs/SMK_BETA_TEST.md). The public beta offers b1 for these device checks; physical validation remains pending.
+The b1 source adds SMK-specific transactional storage, backup-gated initialization, TRS MIDI output for notes/expression and internal clock/Start/Stop, native 44.1 kHz USB audio, pad brightness and LCD sleep/wake. The [device validation checklist](docs/SMK_BETA_TEST.md) separates completed Pro checks from remaining work, including physical MIDI, Elite and broader USB audio coverage.
 
-The target remains single-core with cache RAM disabled. FM-1 input/audio/ADC initialization and OTA staging remain excluded. Bluetooth, user sample upload, TRS Continue/external-clock forwarding and broader long-run hardware validation remain separate work. Private device backups and vendor binaries are not included.
+The published target uses the second core for paired FM6/Prophet rendering, with cache RAM disabled and no clock or voltage changes. FM-1 input/audio/ADC initialization and OTA staging remain excluded. Bluetooth, user sample upload, TRS Continue/external-clock forwarding and broader long-run hardware validation remain separate work. Private device backups and vendor binaries are not included.
 
 ## Provenance
 

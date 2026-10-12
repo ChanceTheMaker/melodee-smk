@@ -52,12 +52,41 @@ def size_names():
 
 def main(src, dst):
     names, hit = size_names(), set()
+    shared_ui = set()
+    if "--smk" in sys.argv[3:]:
+        # SMK-only cold paths: leave audio, scanner, USB ISR and RAM flash
+        # routines at their existing optimization level.
+        for cold_file in ("melodee_smk_storage_hw.c", "fm6_store.c", "cz_store.c",
+                          "native_presets.c", "editor_native.c", "cz_edit.h", "cz_legacy.h",
+                          "editor_prophet.c", "prophet_edit.h", "prophet_user.c"):
+            names.update(definitions((SRC / cold_file).read_text()))
+        names.update({"smk37_cstart", "smk37_enter_usb_update", "smk37_light_service",
+                      "lcd_fill", "lcd_blit", "melodee_usb_service", "melodee_smk_init",
+                      "fm4_convert", "param_format", "page_desc",
+                      "cz_ed_decode", "fm6_freq_text", "enum_orig", "enum_step", "fm6_page_desc", "fm6_page_put"})
+        # Keep common UI wrappers shared instead of duplicating them in the
+        # very large draw_page/ui_input bodies. None runs in the audio ISR.
+        shared_ui = {"cv_text", "cv_text_on", "cv_text_c", "cv_text_r",
+                     "cv_rect", "draw_text_box", "lcd_blit", "lcd_fill"}
+        shared_ui.update(name for name in definitions((SRC / "gfx.c").read_text())
+                         if name.startswith(("cv_", "af_")) and name not in
+                         {"cv_pset", "cv_alpha", "cv_over_px", "cv_vspan_aa"})
+        shared_ui.update({"smk37_lcd_command", "smk37_lcd_data", "smk37_lcd_wait",
+                          "smk37_panel_window", "fm1_delay_ms", "fmt_fix", "fmt_int",
+                          "str_len", "str_cpy", "str_eq", "str_prefix"})
+        # Main-loop SysEx reply helpers are repeated across many commands.
+        # Sharing them avoids spending application flash on identical bounds
+        # checks; no USB IRQ or audio rendering code uses these helpers.
+        shared_ui.update({"ed_b", "ed_v", "ed_bk_u32"})
+        shared_ui.update(name for name in names if name.startswith(("ui_", "draw_", "graph_")))
+        names.update(shared_ui)
 
     def mark(m):
         if m.group(2) not in names:
             return m.group(0)
         hit.add(m.group(2))
-        return m.group(1) + " minsize" + m.group(3)
+        noinline = " noinline" if m.group(2) in shared_ui else ""
+        return m.group(1) + " minsize" + noinline + m.group(3)
     ir = IR_DEF.sub(mark, Path(src).read_text())
     attrs = {int(n): a for n,a in re.findall(r"^attributes #(\d+) = (.*)$",ir,re.M)}
     nextattr = max(attrs)+1
