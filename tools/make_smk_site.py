@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-only
-"""Stage the website and the explicitly approved experimental b1 hardware beta."""
+"""Stage the website and the explicitly approved approved dual-core hardware beta."""
 import argparse
 import hashlib
 import json
@@ -28,19 +28,21 @@ shutil.copytree(ROOT / 'LICENSES', out / 'LICENSES')
 firmware = web / 'firmware'
 manifest = json.loads((firmware / 'candidate.json').read_text(encoding='utf-8'))
 expected = {
-    'image': 'melodee-smk-1.1.0-b1-candidate.bin',
-    'sha256': 'b03c3dfee7966e43e5f542a6c17c7f79e34df14283d8db83229fe3cc4abce40a',
-    'bytes': 581252,
+    'image': 'melodee-smk-1.1.0-b1-dc7-candidate.bin',
+    'sha256': '4426a29ad306a672464d778e44cb3a1238deae87d7b852dc86469f220987522c',
+    'bytes': 581532,
     'update_product': 'SMK-37_941',
-    'update_version': 'MELODEE SMK 1.1.0-b1',
+    'update_version': 'MELODEE SMK 1.1.0-b1-dc7',
     'release_channel': 'public-beta',
     'installable': True,
     'updater': True,
-    'hardware_tested': False,
+    'hardware_tested': False,  # Partial Pro evidence is detailed separately.
+    'dual_core': True,
+    'cache_ram': False,
     'persistent_storage': True,
     'usb_audio': True,
     'storage_initialization': 'backup-required',
-    'storage_audit_sha256': '42989eb46f33be9524527d382b2c40e8c3bcce03836b1a46505f5189bb545209',
+    'storage_audit_sha256': '936b75ed0871c530bed9c853599237f852bc308680ccf62d260be473ed213c66',
 }
 for key, value in expected.items():
     if manifest.get(key) != value:

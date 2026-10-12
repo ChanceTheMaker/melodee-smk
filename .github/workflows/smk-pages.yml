@@ -1,4 +1,4 @@
-name: Publish Melodee SMK website and development candidate
+name: Publish Melodee SMK website and dual-core beta
 on:
   push:
     branches: [main]
@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: '22'
       - run: node tests/smk_browser_test.mjs && node web/installer/test_smk37_public.mjs
-      - run: node web/installer/test_install_flow.mjs && node web/installer/test_discovery.mjs
+      - run: node web/installer/test_install_flow.mjs && node web/installer/test_discovery.mjs && node web/test_smk_updater_handoff.mjs
       - run: node web/test_storage_codec.mjs && python3 tests/smk_storage_audit_test.py
       - name: Check protected storage and initialization
         run: |

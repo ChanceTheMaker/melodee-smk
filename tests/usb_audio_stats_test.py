@@ -49,3 +49,19 @@ except RuntimeError as exc:
 else:
     raise AssertionError('old firmware must not appear to have memory telemetry')
 print('audio stats: schemas 2/3/4/5, full-width counters, flags and malformed replies ok')
+
+# Preserve the older schema/full-width compatibility checks above while adding
+# the Windows name handling and the no-reset request used in hardware trials.
+assert stats.resolve_port('Melodee', ['Doom 0', 'Melodee 1']) == 'Melodee 1'
+assert stats.resolve_port('Melodee 2', ['Melodee 1', 'Melodee 2']) == 'Melodee 2'
+for names in (['Doom 0'], ['Melodee 1', 'Melodee 2'], []):
+    try:
+        stats.resolve_port('Melodee', names)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError('Missing or ambiguous ports must be rejected')
+expected, incoming, outgoing, sent = reply(5, 47)
+assert list(stats.snapshot(incoming, outgoing, voices=True, cores=True, memory=True).values()) == expected
+assert sent[0].data == stats.HEADER + [14]
+print('audio stats: unambiguous Windows ports and read-only trial flags ok')

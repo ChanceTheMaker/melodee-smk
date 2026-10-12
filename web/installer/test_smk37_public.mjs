@@ -35,7 +35,7 @@ try{
     if(caseName==='success'){assert.equal(sends,2);assert.equal(closes,3);}
   }
   sends=0;Updater.prototype.findAny=async()=>({id:{model:'SMK-37',version:921},link:link()});
-  await assert.rejects(installSmk({},pkg),/older private/);assert.equal(sends,0);
+  await assert.rejects(installSmk({},pkg),/older (?:private )?updater/);assert.equal(sends,0);
 }finally{Object.assign(Updater.prototype,saved);}
 // Existing portable updater: exercise the application-to-RAM handoff separately.
 try {

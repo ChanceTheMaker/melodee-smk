@@ -1,13 +1,35 @@
-# Melodee SMK b1 device test
+# Melodee SMK dual-core beta
 
-Public beta: 1.1.0-b1, update identity SMK-37_941.
+Public beta: **1.1.0-b1-dc7**, update identity `SMK-37_941`.
 Baseline: Melodee 01a78bd; measured SMK adapters from sloop-smk 090588d.
 
 ## Release state
 
-The user reported that the earlier dev1 build boots and plays on their SMK. The new b1 storage, TRS and USB audio integration has not yet passed physical testing. Do not infer those results from the browser simulator or host tests. The owner requested publication of b1 as an experimental public beta. Hardware-test status remains false. The approved replacement build gate checks RAM placement and leaf control flow, and executes the production write-policy, power-loss and backup-gate tests before packaging. The public and local installers offer the exact reviewed b1 image. Publication is separate from physical validation; no device was flashed as part of this release task.
+This is the exact application installed and tested on the owner's SMK-37 Pro.
+FM6/Prophet manual playing and controlled capture exercised CPU1 without faults,
+timeouts or rejected jobs. Projects A-D and general preset U1 survived restart.
+44.1 kHz PCM16 USB capture worked for a short analog probe and one minute each
+of FM6 and Prophet. Full evidence is in [SMK_DUAL_CORE.md](SMK_DUAL_CORE.md).
 
-Candidate SHA-256: b03c3dfee7966e43e5f542a6c17c7f79e34df14283d8db83229fe3cc4abce40a. Application size: 581,252 bytes (312 bytes below the retained limit). Build audit: build/melodee-smk-1.1.0-b1/storage-audit.json.
+Known beta limitation: four-note FM6/Prophet tests each recorded 21 missed render
+deadlines; the overload guard shed 77 and 40 voices respectively. Capture itself
+reported no host errors, overruns, underruns or bad packets. This is not a claim
+of glitch-free audio or twice the performance. Elite physical checks, longer
+capture, USB playback/PCM24, physical MIDI expression/clock, native preset and
+favorites persistence remain follow-up work. Bluetooth and sample uploads are
+not available. Windows may retain the old Synthesizer (Melodee In) capture
+name; new descriptors identify it as Line. If hidden, enable the Melodee recording
+endpoint in Windows Sound settings; do not select an unrelated microphone.
+
+The owner approved publishing this beta with these limits. `hardware_tested`
+remains false to avoid implying complete model/feature coverage; the manifest
+also records the specific partial Pro validation. Install protection retains
+model/layout checks, calibration preservation and application-only write limits.
+An interrupted installation can still require hardware recovery.
+
+Application: 581,532 bytes (32 bytes below the retained limit).
+SHA-256: `4426a29ad306a672464d778e44cb3a1238deae87d7b852dc86469f220987522c`.
+Storage audit: `build/melodee-smk-1.1.0-b1-dc7/storage-audit.json`.
 
 ## Storage ownership and preparation
 
@@ -28,9 +50,9 @@ The local storage.html tool downloads two byte-for-byte matching reads of the co
 
 Initialization replaces existing music/sample data within those regions, including data belonging to stock or sibling firmware. The downloaded file is a raw storage backup, not a complete device recovery image. Retain native exports from the prior firmware too. There is no automatic format at boot or after an ordinary firmware update.
 
-## Device checks, in order
+## Follow-up device checks
 
-1. Install the reviewed local candidate through normal USB, then confirm the Melodee SMK splash and b1 version. Retain prior exports and the known working installer.
+1. Install the reviewed local candidate through normal USB, then confirm the Melodee SMK splash and dc7 version. Retain prior exports and the known working installer.
 2. Check all keys, pads, both knob/fader banks, wheels, sustain, soft buttons, octave changes and pad lights. Exercise each brightness level and screen sleep/wake.
 3. With playback stopped and sound decayed, use storage.html to back up and explicitly initialize. Restart when instructed.
 4. Save distinct music to A, B, C and D; restart; load each and check both sequence and sound. Repeat for a general preset, native FM6/CZ/Prophet preset, favorite and a changed setting. Check TRS enable survives restart. Never overwrite valuable slots for this test.
@@ -45,7 +67,7 @@ Initialization replaces existing music/sample data within those regions, includi
 - Browser runtime: five engines, full keyboard/pad input, sustain and complete session restoration with corruption rejection.
 - Native USB audio: endpoint lifecycle, descriptors, isolated real-mixer stems, PCM16/PCM24, packet bounds and simulated drift.
 
-Record hardware results here before describing these integrations as device-tested or promoting the beta as a validated release. Bluetooth and user sample upload are outside this beta's completed feature set.
+Record new hardware results here; the checks above are not all completed. Bluetooth and user sample upload are outside this beta's completed feature set.
 
 ## b1 release verification — 2026-10-11
 

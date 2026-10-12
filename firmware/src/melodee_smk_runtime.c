@@ -3,8 +3,7 @@
 #include <stdint.h>
 #define MELODEE_SMK 1
 static uint8_t smk37_trs_enabled;
-#define MELODEE_DUAL_CORE 0
-#define MELODEE_CACHE_RAM 0
+#include "melodee_smk_options.h"
 #define MELODEE_CORE1_TEST 0
 #define MELODEE_UART 0
 #define MELODEE_CDC 0
@@ -32,7 +31,11 @@ static void fm1_wdt_feed(void){}
 static void fm1_delay_ms(uint32_t ms){fm1_ms+=ms;}
 #endif
 #ifndef MELODEE_VERSION
+#ifdef MELODEE_SMK_HARDWARE
+#define MELODEE_VERSION "SMK " SMK37_RELEASE_VERSION
+#else
 #define MELODEE_VERSION "SMK 1.1.0-b1"
+#endif
 #endif
 #define MELODEE_ID "SMK-37_941"
 #define FM1_TICKS_PER_US 24u
@@ -69,6 +72,7 @@ static uint8_t fm1_led[16],fm1_led_dim[3][16],fm1_led_dim_mask[3];
 static int16_t scope_buf[SCOPE_N];static uint32_t scope_w;
 static struct {uint32_t stage,late,max_us;} melodee_dbg;
 static uint32_t shed_count;
+#include "audio_shed_voice.h"
 #ifdef MELODEE_SMK_HARDWARE
 static void smk_lcd_power(unsigned);
 #define UI_LCD_POWER(s) smk_lcd_power(s)

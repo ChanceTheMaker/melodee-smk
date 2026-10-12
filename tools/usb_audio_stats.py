@@ -5,6 +5,8 @@
 import argparse
 import json
 import time
+from datetime import datetime, timezone
+from contextlib import nullcontext
 import mido
 
 FIELDS = (
@@ -21,6 +23,17 @@ MEMORY_FIELDS = ('cache_status', 'cache_con_before', 'cache_data_before', 'cache
                  'cache_test_us', 'resource_capacity', 'resource_used', 'resource_peak', 'resource_failures',
                  'cache_capacity', 'cache_used')
 HEADER = [0x7D, 0x46, 0x4C, 72]
+
+
+def resolve_port(request, names):
+    """Allow Windows' numeric suffixes, but never choose an ambiguous unit."""
+    if request in names:
+        return request
+    matches = [name for name in names if name.startswith(request + ' ')]
+    if len(matches) != 1:
+        raise ValueError(f'Expected one MIDI port matching {request!r}; available: {names!r}. '
+                         'Use --input and --output with exact names.')
+    return matches[0]
 
 
 def snapshot(incoming, outgoing, window=False, voices=False, cores=False, memory=False):
@@ -49,6 +62,10 @@ def snapshot(incoming, outgoing, window=False, voices=False, cores=False, memory
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--port', default='Melodee')
+    parser.add_argument('--input', help='Exact MIDI input name (may differ from output on Windows)')
+    parser.add_argument('--output', help='Exact MIDI output name')
+    parser.add_argument('--list', action='store_true', help='List ports without opening them')
+    parser.add_argument('--jsonl', help='Save diagnostics to a new JSONL file; never overwrite an existing capture')
     parser.add_argument('--seconds', type=float, default=0)
     parser.add_argument('--interval', type=float, default=5)
     parser.add_argument('--window', action='store_true',
@@ -57,15 +74,31 @@ def main():
     parser.add_argument('--cores', action='store_true', help='include second-core worker and FM6 pairing counters')
     parser.add_argument('--memory', action='store_true', help='include SRAM capacity and cache-RAM boot self-test results')
     args = parser.parse_args()
+    if args.list:
+        print(json.dumps({'inputs': mido.get_input_names(), 'outputs': mido.get_output_names()}))
+        return
     if args.interval < 1 or args.seconds < 0:
         parser.error('interval must be >= 1 s; seconds must be >= 0')
-    with mido.open_input(args.port) as incoming, mido.open_output(args.port) as outgoing:
+    try:
+        input_name = resolve_port(args.input or args.port, mido.get_input_names())
+        output_name = resolve_port(args.output or args.port, mido.get_output_names())
+    except ValueError as error:
+        parser.error(str(error))
+    with (open(args.jsonl, 'x', encoding='utf-8') if args.jsonl else nullcontext()) as capture, \
+            mido.open_input(input_name) as incoming, mido.open_output(output_name) as outgoing:
         start = time.monotonic()
         while True:
             stats = snapshot(incoming, outgoing, args.window, args.voices, args.cores, args.memory)
             stats['cpu_pct'] = round(stats['cpu_q8'] * 100 / 256, 1)
             stats['elapsed_s'] = round(time.monotonic() - start, 3)
-            print(json.dumps(stats), flush=True)
+            stats['utc'] = datetime.now(timezone.utc).isoformat()
+            stats['input'] = input_name
+            stats['output'] = output_name
+            line = json.dumps(stats)
+            print(line, flush=True)
+            if capture:
+                capture.write(line + '\n')
+                capture.flush()
             remaining = start + args.seconds - time.monotonic()
             if remaining <= 0:
                 break

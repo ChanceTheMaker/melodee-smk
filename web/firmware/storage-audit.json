@@ -13,7 +13,7 @@
     "melodee_smk_storage",
     "melodee_smk_setup"
   ],
-  "ram_disassembly_sha256": "3290475d65719f5235b19440f7135b5622222021a4382cdab4505dfe5abe59c1",
+  "ram_disassembly_sha256": "2d1b26dbe5589919203f21280feadb4740f12a889ee5d545d89d9ad861293da7",
   "write_ranges": [
     [
       "0x9d000",

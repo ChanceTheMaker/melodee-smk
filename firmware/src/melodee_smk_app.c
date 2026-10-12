@@ -2,15 +2,20 @@
 /* Melodee SMK target. Native UI/DSP, SMK peripherals and optional guarded storage. */
 #include <stdint.h>
 #define MELODEE_SMK_HARDWARE 1
+#include "melodee_smk_options.h"
 #define FELUCCA_FLASH 1
 #define SMK37_ENABLE_TRS 1
-#define FELUCCA_UAC 1 /* dedicated SMK USB timer, MIDI only for first target */
+#define FELUCCA_UAC 1 /* dedicated SMK timer for MIDI and audio service */
 #include "smk37_unit.h"
 #include "smk37_loader_image.h"
 #define SMK37_ENABLE_USB_UPDATE 1
 #include "fm1_time.h"
 #include "fm1_sys.h"
 #include "fm1_irq.h"
+#if MELODEE_DUAL_CORE
+#include "fm1_multicore.h"
+#endif
+#include "melodee_smk_multicore.h"
 #include "fm1_timer.h"
 #include "smk37_audio.h"
 #include "smk37_lcd_hw.h"
@@ -36,25 +41,13 @@ static void lcd_sync(void);
 static void lcd_blit(uint32_t,uint32_t,uint32_t,uint32_t,const uint16_t*);
 static void lcd_fill(uint32_t,uint32_t,uint32_t,uint32_t,uint16_t);
 #include "melodee_smk_runtime.c"
+#include "smk37_audio_budget.h"
 #include "smk37_midi_output.c"
 #include "melodee_smk_storage_service.c"
 /* TIMER5 owns USB polling; never enter the SIE again from the editor loop. */
 static uint32_t ota_now_ms(void){return fm1_ticks()/24000u;}
 static void ota_idle(void){fm1_wdt_feed();}
-static void melodee_usb_service(void){
-    static const uint8_t query[]={0,0x32,0x45,0,0,0,0x40,0x7f};
-    const uint8_t *p;uint32_t n;
-    if(ota_frame_get(&p,&n)&&n==sizeof query&&!memcmp(p,query,n)){
-        ota_frame_done();ota_wire_send(smk37_update_identity_wire,sizeof smk37_update_identity_wire);return;
-    }
-#if FELUCCA_FLASH
-    if(ota_frame_get(&p,&n) && melodee_storage_service(p,n)){ota_frame_done();return;}
-#endif
-    if(ms_setup_locked){if(ota_frame_get(&p,&n))ota_frame_done();return;}
-    ed_service();
-    /* Unknown vendor frames must not wedge the one-frame receive queue. */
-    if(ota_frame_get(&p,&n))ota_frame_done();
-}
+#include "melodee_smk_usb_service.h"
 
 volatile smk37_bootguard_t smk37_boot_state __attribute__((section(".noinit")));
 
@@ -86,6 +79,7 @@ static smk37_pedal_t smk37_pedal_input;
 static volatile uint32_t smk37_pedal_latest; /* stable level, applied only by audio consumer */
 static volatile uint32_t smk37_analog_latest[6]; /* bit 16 valid, low bits raw */
 static volatile uint8_t smk37_analog_failed;
+static smk37_fader_filter_t smk37_fader_filters[4];
 void smk37_scanner_irq(void)
 {
     unsigned key;
@@ -107,7 +101,7 @@ void smk37_scanner_irq(void)
             if (change.release) smk37_events_push(&smk37_pad_events, i, 0);
         }
         for (unsigned i=0; i<4; ++i) if (analog_index==smk37_fader_input[i])
-            smk37_analog_latest[i] = 0x10000u | raw;
+            smk37_analog_latest[i] = 0x10000u | smk37_fader_filter(&smk37_fader_filters[i],raw);
         if (analog_index==16 || analog_index==17)
             smk37_analog_latest[analog_index-12] = 0x10000u | raw;
     }
@@ -154,7 +148,7 @@ static void smk37_consume_keys(void){
     if(smk37_encoder_events.overflow){fm1_irq_off();smk37_events_discard(&smk37_encoder_events);fm1_irq_on();memset(phases,0,sizeof phases);}
     if(smk37_events_pop(&smk37_encoder_events,&e)&&e.key<8){phases[e.key]+=e.duration==1?1:-1;if(phases[e.key]>=4||phases[e.key]<=-4){melodee_smk_event(1,e.key,phases[e.key]>0?1:-1);phases[e.key]=0;}}
     static uint16_t previous[6];static uint8_t valid;
-    if(!smk37_analog_failed)for(unsigned i=0;i<6;i++){uint32_t v=smk37_analog_latest[i];if(!(v&0x10000))continue;unsigned raw=v&65535;if(!(valid&(1u<<i))){previous[i]=raw;valid|=1u<<i;continue;}int delta=(int)raw-previous[i];if(delta>-3&&delta<3)continue;previous[i]=raw;if(i<4)melodee_smk_event(4,i,raw);else melodee_smk_event(5,i-4,i==4?smk37_pitch_value(raw):smk37_mod_value(raw));}
+    if(!smk37_analog_failed)for(unsigned i=0;i<6;i++){uint32_t v=smk37_analog_latest[i];if(!(v&0x10000))continue;unsigned raw=v&65535;if(!(valid&(1u<<i))){previous[i]=raw;valid|=1u<<i;continue;}if(!smk37_analog_moved(i,raw,previous[i]))continue;previous[i]=raw;if(i<4)melodee_smk_event(4,i,raw);else melodee_smk_event(5,i-4,i==4?smk37_pitch_value(raw):smk37_mod_value(raw));}
     if(smk_sustain!=(smk37_analog_failed?0:smk37_pedal_latest))melodee_smk_event(6,0,smk37_analog_failed?0:smk37_pedal_latest);
 }
 static int smk37_panel_command(uint8_t c) { return smk37_lcd_command(c, 4000000u); }
@@ -216,6 +210,8 @@ void smk37_audio_irq(void)
         unsigned half = smk37_audio_free_half(), b, i;
         int32_t *out = smk37_dma + half * HALF_FRAMES * 2u;
         if(ms_setup_locked){memset(out,0,HALF_FRAMES*2u*sizeof *out);smk37_audio_ack_half();++smk37_rendered;return;}
+        smk37_multicore_checkpoint();
+        smk37_audio_budget_begin();
         smk37_consume_keys();
 
 #if FELUCCA_UAC
@@ -223,6 +219,8 @@ void smk37_audio_irq(void)
 #endif
         for (b = 0; b < HALF_FRAMES; b += CTL) {
             mix_block(out + b * 2u, CTL);
+            /* Both kernels have joined; catch faults/timeouts before more work. */
+            smk37_multicore_checkpoint();
 #if MELODEE_USB_AUDIO
             fm1_irq_off();
             if(usb.up&&usb.config&&!usb.suspended)ua_audio(out+b*2u,track_capture_on?track_capture:0,CTL,song.master_q12);
@@ -241,7 +239,9 @@ void smk37_audio_irq(void)
         smk37_audio_ack_half();
         ++smk37_rendered;
         if (smk37_audio_free_half() != half) {++smk37_late;++melodee_dbg.late;}
-        unsigned us=(fm1_ticks()-begin)/24u;
+        uint32_t elapsed=fm1_ticks()-begin;
+        smk37_audio_budget_end(elapsed);
+        unsigned us=elapsed/FM1_TICKS_PER_US;
         if(us>melodee_dbg.max_us)melodee_dbg.max_us=us;
         song.cpu_q8=(song.cpu_q8*31u+us*256u/(HALF_FRAMES*1000000u/FS))/32u;
     }
@@ -252,11 +252,7 @@ void smk37_audio_irq(void)
  * loop never polls USB concurrently with this consumer. Retry stays in main:
  * usb.up is false throughout its 25 ms reset, so usb_poll touches no SIE. */
 #if FELUCCA_UAC
-void smk37_usb_irq(void){fm1_timer5_ack();usb_poll();
-#if SMK37_ENABLE_TRS
-    smk37_trs_poll();
-#endif
-}
+#include "melodee_smk_usb_irq.h"
 extern void smk37_isr_usb(void);
 static void smk37_usb_timer_start(void){
     fm1_timer5_start(smk37_isr_usb,4);
@@ -271,6 +267,7 @@ static void smk37_usb_timer_stop(void){FM1_T5_CON=0x4000u;
 static void smk37_enter_usb_update(void){
     smk37_bootguard_update(&smk37_boot_state);
     fm1_irq_off();
+    smk37_multicore_stop(0); /* stop before the RAM loader overwrites application state */
 #if FELUCCA_UAC
     smk37_usb_timer_stop();
 #endif
@@ -289,6 +286,7 @@ extern void smk37_isr_scanner(void);
 static void fm1_fault(const fm1_crash_t *record)
 {
     (void)record;
+    smk37_multicore_stop(1);
 #if FELUCCA_UAC
     smk37_usb_timer_stop();
 #endif
@@ -310,12 +308,14 @@ void smk37_cstart(const uint32_t *boot_parameters)
     uint8_t saved_p3_reset, saved_watchdog;
     /* Shared P33 reset flags: bit 0 is power-on. Snapshot before replacing BSS.
      * Retention and fallback entry are still hardware verification gates. */
+    fm1_core1_stop(); /* hold a prior worker before even the reset snapshot touches RAM */
     fm1_p33_timeouts = 0; /* P33 helpers run before BSS initialization. */
     fm1_reset_reason();
     saved_reset = fm1_boot.rst_src;
     saved_p3_reset = fm1_boot.p3_rst;
     saved_watchdog = fm1_boot.wdt_con;
     fm1_wdt_arm(0x0d);
+    smk37_multicore_prepare(saved_p3_reset & 1u);
     if (smk37_bootguard_begin(&smk37_boot_state, fm1_boot.p3_rst & 1u))
         fm1_enter_uboot();
     smk37_boot_capture(boot_parameters);
@@ -358,6 +358,8 @@ void smk37_cstart(const uint32_t *boot_parameters)
     smk37_scan_set_analog(smk37_analog_mask(&smk37_adc.scan));
     smk37_scan_init(fm1_irq_attach, smk37_isr_scanner);
     smk37_boot_state.stage = SMK37_BOOT_AUDIO;
+    fm1_irq_off();
+    smk37_multicore_start(smk37_boot_state.failures);
     (void)smk37_audio_init(smk37_dma, HALF_FRAMES * 2u,
                           smk37_isr_audio, 3, &smk37_audio_hooks);
     last = fm1_ticks();
@@ -412,6 +414,8 @@ void smk37_cstart(const uint32_t *boot_parameters)
          * in Pro016. It is not a verified forced recovery route. */
         if (usb.uboot_req) {
             smk37_bootguard_update(&smk37_boot_state);
+            fm1_irq_off();
+            smk37_multicore_stop(0);
 #if FELUCCA_UAC
             smk37_usb_timer_stop();
 #endif

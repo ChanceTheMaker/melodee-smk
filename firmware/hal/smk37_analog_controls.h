@@ -6,6 +6,30 @@ static const uint8_t smk37_pad_input[16] = {
     3,0,1,2,4,6,7,5,11,8,9,10,12,14,15,13
 };
 static const uint8_t smk37_fader_input[4] = {21,18,19,20};
+/* Update only on a fresh ADC conversion, never repeatedly on a stale sample.
+ * Quarter-rate integer low-pass retains fractional history and converges to
+ * both exact endpoints; a stationary fader is not initialized from zero. */
+/* Store sum+1 so zero denotes an uninitialized filter without another flag. */
+typedef struct { uint32_t biased_sum; } smk37_fader_filter_t;
+static inline unsigned smk37_fader_filter(smk37_fader_filter_t *s, unsigned raw)
+{
+    unsigned sum=s->biased_sum;
+    if(!sum)sum=(raw<<2)+1;
+    else sum+=raw-((sum-1)>>2);
+    s->biased_sum=sum;
+    return (sum-1)>>2;
+}
+/* A fader's 10-bit ADC needs about eight counts per 7-bit parameter step.
+ * Anchor the deadband at the last accepted sample so slow movement accumulates;
+ * wheels retain the original three-count threshold. */
+static inline int smk37_analog_moved(unsigned control, unsigned raw, unsigned previous)
+{
+    if(control<4 && raw!=previous && (raw==0 || raw>=1023))return 1;
+    int delta=(int)raw-(int)previous;
+    int threshold=control<4 ? 8 : 3;
+    /* One unsigned interval check includes both movement directions. */
+    return (unsigned)(delta+threshold-1)>=(unsigned)(2*threshold-1);
+}
 /* Provisional bench calibration from THIS unit. Never written to factory trim. */
 static inline int16_t smk37_pitch_value(unsigned raw)
 {

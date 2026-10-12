@@ -1,4 +1,5 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
+#include "src/melodee_smk_options.h"
     .section .text.crt0,"ax",@progbits
     .globl _start
 _start:
@@ -43,5 +44,19 @@ smk37_isr_usb:
     {r3-r0} = [sp++]
     {psr, rets, reti} = [sp++]
     csync
+    rti
+#endif
+
+/* Same AC79 CPU1 reset entry as upstream crt0.S; separate private stacks. */
+#if MELODEE_DUAL_CORE
+    .section .text.core1,"ax",@progbits
+    .globl fm1_core1_start
+fm1_core1_start:
+    cli
+    icfg = 0
+    usp = _cpu1_ustack_top
+    sp = _cpu1_sstack_top
+    ssp = _cpu1_sstack_top
+    reti = fm1_core1_main
     rti
 #endif
