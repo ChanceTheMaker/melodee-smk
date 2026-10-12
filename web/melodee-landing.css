@@ -13,3 +13,5 @@
 #guide{margin:0;padding:24px}#guide .panel-art{max-width:none}.panel-info dd{line-height:1.65}.preview-gallery{margin:16px 0 44px}.browser-start li{padding:8px 0;line-height:1.7}
 @media(max-width:800px){.install-paths,.status-box .install-fields{grid-template-columns:1fr}.screenshot-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.studio-gallery-subtitle{display:none}.status-box{padding:16px}.landing-page .install-console{padding:20px 14px}}
 @media(max-width:480px){.screenshot-gallery{grid-template-columns:1fr}.hero-actions .action,.install-action{width:100%;box-sizing:border-box}.hero-actions{align-items:stretch}}
+
+.landing-section>p:has(.studio-gallery-link){max-width:none}.landing-page .studio-gallery-link{display:flex}

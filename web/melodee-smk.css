@@ -71,3 +71,6 @@ button,a.action{touch-action:manipulation}.mode-switch{display:flex;gap:3px;bord
 [data-skin=melodee] .smk-simulator-shell .sim-button.lit { border-bottom-color:#b5eba4; color:#d8f5ca; }
 [data-skin=melodee][data-mode=light] .studio-preview-action { color:var(--ink); }
 @media(max-width:600px) { [data-skin=melodee] main { border-radius:14px; } [data-skin=melodee] .masthead { border-radius:13px 13px 3px 3px; } }
+
+:root[data-skin=melodee] .install-primary{background:linear-gradient(130deg,color-mix(in srgb,var(--accent) 90%,white),var(--accent));color:var(--ink);border-color:var(--accent);box-shadow:0 6px 20px var(--mel-shadow)}
+[data-skin=melodee] #status:not([data-error=true]){border-left-color:var(--accent)}

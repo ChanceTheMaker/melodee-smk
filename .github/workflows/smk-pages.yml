@@ -31,6 +31,7 @@ jobs:
             cc -O2 -std=c11 tests/${name}_test.c -o /tmp/$name
             /tmp/$name
           done
+      - run: node web/test_panel_glide.mjs
       - run: python3 tools/make_smk_site.py build/smk-site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
