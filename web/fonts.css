@@ -58,9 +58,9 @@
 @font-face {
   font-family: 'Sora';
   font-style: normal;
-  font-weight: 700;
+  font-weight: 100 800;
   font-display: swap;
-  src: url(fonts/sora.ttf?v=studio1) format('truetype');
+  src: url(fonts/sora.ttf?v=melodee-full1) format('truetype');
 }
 
 @font-face {
