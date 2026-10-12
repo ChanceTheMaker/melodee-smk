@@ -29,7 +29,7 @@ async function prepare(){
   const request=++generation,model=$('model').value,file=$('stock-file').files[0];prepared=null;preparing=true;$('confirm').checked=false;controls();status('Preparing Melodee for '+model+'… No device access.');
   try{
     const m=await (await fetchChecked('firmware/candidate.json')).json();
-    if(m.release_channel!=='local-development'||!m.installable||!m.updater||m.hardware_tested!==false||m.update_product!=='SMK-37_941'||m.update_version!=='MELODEE SMK 1.1.0-b1'||m.storage_initialization!=='backup-required'||!m.persistent_storage||!/^[a-z0-9.-]+-candidate\.bin$/.test(m.image))throw Error('The staged manifest is not this reviewed Melodee development candidate.');
+    if(!['local-development','public-beta'].includes(m.release_channel)||!m.installable||!m.updater||m.hardware_tested!==false||m.update_product!=='SMK-37_941'||m.update_version!=='MELODEE SMK 1.1.0-b1'||m.storage_initialization!=='backup-required'||!m.persistent_storage||!/^[a-z0-9.-]+-candidate\.bin$/.test(m.image))throw Error('The staged manifest is not this reviewed Melodee development candidate.');
     const app=new Uint8Array(await (await fetchChecked('firmware/'+m.image)).arrayBuffer());
     const stock=new Uint8Array(await (file?file.arrayBuffer():fetchChecked(STOCK_SOURCES[model]).then(r=>r.arrayBuffer())));
     const pkg=await buildSmkPublicPackage(stock,app,{localCandidate:true,product:m.update_product,version:m.update_version,bytes:m.bytes,sha256:m.sha256});
@@ -37,7 +37,7 @@ async function prepare(){
     await parsePackage(pkg.bytes,pkg.sha);
     if(request!==generation)return;
     manifest=m;prepared=pkg;$('version').textContent=m.firmware;$('hash').textContent='Application SHA-256: '+m.sha256;
-    status(support?m.firmware+' ready for '+model+'. Confirm the development notice to enable Install.':'Files verified. Installing requires desktop Chrome or Edge on HTTPS or localhost with Web MIDI support.',!support);
+    status(support?m.firmware+' ready for '+model+'. Confirm the beta notice to enable Install.':'Files verified. Installing requires desktop Chrome or Edge on HTTPS or localhost with Web MIDI support.',!support);
     log('Prepared '+pkg.version+' for '+model+'; package SHA-256 '+pkg.sha+'. No MIDI ports opened.');
   }catch(e){if(request!==generation)return;status(e.message+' If the automatic official-file download failed, use the local-file fallback above.',true);log('Preparation stopped: '+e.message);}
   finally{if(request===generation){preparing=false;controls();}}

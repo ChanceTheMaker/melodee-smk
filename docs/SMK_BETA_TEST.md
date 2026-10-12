@@ -1,11 +1,11 @@
 # Melodee SMK b1 device test
 
-Local candidate: 1.1.0-b1, update identity SMK-37_941.
+Public beta: 1.1.0-b1, update identity SMK-37_941.
 Baseline: Melodee 01a78bd; measured SMK adapters from sloop-smk 090588d.
 
 ## Release state
 
-The user reported that the earlier dev1 build boots and plays on their SMK. The new b1 storage, TRS and USB audio integration has not yet passed physical testing. Do not infer those results from the browser simulator or host tests. The public site remains unchanged while b1 is prepared. The approved replacement build gate checks RAM placement and leaf control flow, and executes the production write-policy, power-loss and backup-gate tests before packaging. The local installer now stages b1; no new firmware has been flashed or published.
+The user reported that the earlier dev1 build boots and plays on their SMK. The new b1 storage, TRS and USB audio integration has not yet passed physical testing. Do not infer those results from the browser simulator or host tests. The owner requested publication of b1 as an experimental public beta. Hardware-test status remains false. The approved replacement build gate checks RAM placement and leaf control flow, and executes the production write-policy, power-loss and backup-gate tests before packaging. The public and local installers offer the exact reviewed b1 image. Publication is separate from physical validation; no device was flashed as part of this release task.
 
 Candidate SHA-256: b03c3dfee7966e43e5f542a6c17c7f79e34df14283d8db83229fe3cc4abce40a. Application size: 581,252 bytes (312 bytes below the retained limit). Build audit: build/melodee-smk-1.1.0-b1/storage-audit.json.
 
@@ -45,4 +45,8 @@ Initialization replaces existing music/sample data within those regions, includi
 - Browser runtime: five engines, full keyboard/pad input, sustain and complete session restoration with corruption rejection.
 - Native USB audio: endpoint lifecycle, descriptors, isolated real-mixer stems, PCM16/PCM24, packet bounds and simulated drift.
 
-Hardware results must be added here before promoting the candidate. Bluetooth and user sample upload are outside this beta's completed feature set.
+Record hardware results here before describing these integrations as device-tested or promoting the beta as a validated release. Bluetooth and user sample upload are outside this beta's completed feature set.
+
+## b1 release verification — 2026-10-11
+
+The exact published image passed Pro and Elite official-container round trips, protected-region comparisons and corrupt-image rejection. Storage policy/setup/torn-write fixtures pass. Native USB host checks pass PCM16/24 routing, 120-second simulated clock-drift cases, endpoint lifecycle, four isolated mixer stems and descriptors. These are automated host tests, not recordings or measurements from the physical SMK. Browser and installer regression suites also pass.

@@ -1,4 +1,4 @@
-name: Publish Melodee SMK browser preview
+name: Publish Melodee SMK website and development candidate
 on:
   push:
     branches: [main]
@@ -24,6 +24,13 @@ jobs:
           node-version: '22'
       - run: node tests/smk_browser_test.mjs && node web/installer/test_smk37_public.mjs
       - run: node web/installer/test_install_flow.mjs && node web/installer/test_discovery.mjs
+      - run: node web/test_storage_codec.mjs && python3 tests/smk_storage_audit_test.py
+      - name: Check protected storage and initialization
+        run: |
+          for name in melodee_smk_storage_policy melodee_smk_storage melodee_smk_setup; do
+            cc -O2 -std=c11 tests/${name}_test.c -o /tmp/$name
+            /tmp/$name
+          done
       - run: python3 tools/make_smk_site.py build/smk-site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

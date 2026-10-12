@@ -1,0 +1,28 @@
+{
+  "ram_start": "0x1c00000",
+  "ram_end": "0x1c00b68",
+  "leaf_flash_routines": [
+    "fl_erase4k_ram",
+    "fl_prog_ram",
+    "fl_read_ram",
+    "fl_jedec_ram"
+  ],
+  "instructions_checked": 919,
+  "host_tests_passed": [
+    "melodee_smk_storage_policy",
+    "melodee_smk_storage",
+    "melodee_smk_setup"
+  ],
+  "ram_disassembly_sha256": "3290475d65719f5235b19440f7135b5622222021a4382cdab4505dfe5abe59c1",
+  "write_ranges": [
+    [
+      "0x9d000",
+      "0xc0000"
+    ],
+    [
+      "0xc2000",
+      "0xff000"
+    ]
+  ],
+  "initialization": "explicit verified-backup gate; reboot required"
+}

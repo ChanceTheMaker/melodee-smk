@@ -2,11 +2,19 @@
 
 Independent SMK-37 Pro & Elite port of [Melodee](https://github.com/keremimo/melodee), with the shared SMK Studio and simulator website.
 
-**Current work: 1.1.0-b1 — local integration and device-test preparation.**
+**Current release: 1.1.0-b1 — experimental public beta.**
 
-The local installer now stages b1 after passing its RAM-placement, protected-range, interrupted-write and backup-gate checks. See [the b1 test and storage guide](docs/SMK_BETA_TEST.md) for the exact release state and device checks.
+The public and local installers now offer b1 after passing its RAM-placement, protected-range, interrupted-write and backup-gate checks. See [the b1 test and storage guide](docs/SMK_BETA_TEST.md) for the exact release state and device checks.
 
 The user has installed and played the earlier dev1 build on an SMK. The new b1 persistence, physical MIDI and USB audio changes still require device validation. The browser uses Melodee's C synthesis and UI compiled to WebAssembly; it is not a cycle-accurate emulator of the JieLi chip, USB hardware or Bluetooth radio.
+
+## Public website
+
+- [Homepage and installation](https://chancethemaker.github.io/melodee-smk/#install)
+- [Studio](https://chancethemaker.github.io/melodee-smk/editor.html?audio=1) and [Simulator](https://chancethemaker.github.io/melodee-smk/simulator.html)
+- [SMKLab and sibling firmware](https://chancethemaker.github.io/smklab/)
+
+The published b1 application is 581,252 bytes, SHA-256 `b03c3dfee7966e43e5f542a6c17c7f79e34df14283d8db83229fe3cc4abce40a`. Publication keeps `hardware_tested: false`; this beta is not a claim that the new physical integrations have passed. The Pages builder pins the application and storage-audit hashes so a local rebuild cannot silently become the public release.
 
 ## Open locally
 
@@ -21,13 +29,13 @@ python -m http.server 8791 --bind 127.0.0.1 --directory web
 - SMK simulator: http://localhost:8791/simulator.html
 - Development installer: http://localhost:8791/installer.html
 
-The front page includes the rotating Pro/Elite hardware illustration, native Melodee screen, feature overview, guide and links to both browser views. The separate development installer prepares the staged candidate for either model. It does not open MIDI ports until Install is explicitly clicked.
+The front page includes the rotating Pro/Elite hardware illustration, native Melodee screen, feature overview, six-part illustrated control guide, 13 theme thumbnails with light/dark previews, and links to both browser views. The homepage Install section and dedicated installer prepare the beta for either model. It does not open MIDI ports until Install is explicitly clicked.
 
 ## Studio and simulator
 
 - Native Melodee engines: Prophet, FM6, CZ-1, SID and drums; native editor protocol and sound parameter descriptors.
 - Melodee's existing deep Prophet/CZ/FM6 editors, sequencer, track mixer, browser Library, project and settings screens.
-- Shared website themes: Melodee Atelier, Stage Red, Matrix, Vintage DX7, Model D Walnut, Chocolate Factory, Vaporwave, Midnight Studio, Space Mission, Bauhaus, Ocean Lab, Arcade '84 and high contrast; light/dark modes and full-width toggle.
+- Custom sage/blue/lilac Melodee Atelier theme with light and dark modes; additional website themes: Stage Red, Matrix, Vintage DX7, Model D Walnut, Chocolate Factory, Vaporwave, Midnight Studio, Space Mission, Bauhaus, Ocean Lab, Arcade '84 and high contrast; light/dark modes and full-width toggle.
 - Knobs/sliders per Sound card, movable cards, native parameter readouts and interactive envelope/LFO/arpeggiator/effect guides.
 - Fixed browser keyboard with a collapsible tray, sustain, velocity and track routing; live oscilloscope.
 - SMK simulator with 37 keys, 16 pads, 8 knobs, 4 faders, pitch/mod wheels, sustain, native LCD, Pro/Elite finish swatches, compact/expanded view, fullscreen and replayable tutorial.
@@ -101,7 +109,7 @@ Verified: both stock container/CRC round trips, protected bytes unchanged, corru
 
 ## Hardware integration status
 
-The b1 source adds SMK-specific transactional storage, backup-gated initialization, TRS MIDI output for notes/expression and internal clock/Start/Stop, native 44.1 kHz USB audio, pad brightness and LCD sleep/wake. These features have host tests but still need the [device validation checklist](docs/SMK_BETA_TEST.md). The local installer serves b1 for those device checks; the public release is unchanged.
+The b1 source adds SMK-specific transactional storage, backup-gated initialization, TRS MIDI output for notes/expression and internal clock/Start/Stop, native 44.1 kHz USB audio, pad brightness and LCD sleep/wake. These features have host tests but still need the [device validation checklist](docs/SMK_BETA_TEST.md). The public beta offers b1 for these device checks; physical validation remains pending.
 
 The target remains single-core with cache RAM disabled. FM-1 input/audio/ADC initialization and OTA staging remain excluded. Bluetooth, user sample upload, TRS Continue/external-clock forwarding and broader long-run hardware validation remain separate work. Private device backups and vendor binaries are not included.
 
