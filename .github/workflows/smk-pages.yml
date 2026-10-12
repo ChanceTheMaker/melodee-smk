@@ -1,4 +1,4 @@
-name: Publish Melodee SMK browser preview
+name: Publish Melodee SMK website and development candidate
 on:
   push:
     branches: [main]

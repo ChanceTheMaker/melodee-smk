@@ -2,9 +2,19 @@
 
 Independent SMK-37 Pro & Elite port of [Melodee](https://github.com/keremimo/melodee), with the shared SMK Studio and simulator website.
 
-**Current milestone: 1.1.0-dev1 — local browser preview and installable development candidate.**
+**Current milestone: 1.1.0-dev1 — public browser preview and installable development candidate.**
 
-This is a local development candidate, not a hardware-validated release. No SMK was flashed or used to validate this port. The browser uses Melodee's C synthesis and UI compiled to WebAssembly; it is not a cycle-accurate emulator of the JieLi chip, USB hardware or Bluetooth radio.
+This is a publicly available experimental development candidate, not a hardware-validated release. No SMK was flashed or used to validate this port. The browser uses Melodee's C synthesis and UI compiled to WebAssembly; it is not a cycle-accurate emulator of the JieLi chip, USB hardware or Bluetooth radio.
+
+## Public website
+
+- [Homepage](https://chancethemaker.github.io/melodee-smk/)
+- [Development installer](https://chancethemaker.github.io/melodee-smk/installer.html)
+- [Studio](https://chancethemaker.github.io/melodee-smk/editor.html?audio=1) and [Simulator](https://chancethemaker.github.io/melodee-smk/simulator.html)
+
+The published application is `1.1.0-dev1`, identity `SMK-37_940`, built from the initial port at `ee9cd18`. Its SHA-256 is `f6bbd1b5a1470accb9b9b87b03daa742ed59d01edb597333c79980140c36fa4d` (578,624 bytes). Publication does not imply physical validation. The installer requires explicit acceptance of the experimental-build notice before it can open MIDI and install.
+
+Only this approved application and its manifest are included. Official firmware is fetched and checked in the browser; vendor packages, unit backups and newer local hardware work are excluded. The Pages builder pins the approved application hash, size and updater identity and rejects a different candidate.
 
 ## Open locally
 
@@ -77,9 +87,9 @@ Automated runtime coverage: all five main engines produce audio; editor INFO, DU
 
 ## Development installer
 
-The local page automatically fetches the staged GPL application and an immutable mirror of the official model-specific 016 package. Both complete stock SHA-256 and application SHA-256/size are checked. A local official .fwsc file is an optional fallback; files are not uploaded. Model changes discard the prepared candidate and reset confirmation.
+The installer automatically fetches the staged GPL application and an immutable mirror of the official model-specific 016 package. Both complete stock SHA-256 and application SHA-256/size are checked. A local official .fwsc file is an optional fallback; files are not uploaded. Model changes discard the prepared candidate and reset confirmation.
 
-Select either an existing portable SMK updater (identity 922 or newer) or exact stock Pro/Elite 016. No START is sent to an FM-1, wrong stock model/version, or older private updater. The stock route requires the exact expected official OTA identity after handoff; the unresolved Elite handoff is not worked around by loosening identity checks.
+Select either an existing portable SMK updater (identity 922 or newer) or exact stock Pro/Elite 016. No START is sent to an FM-1, wrong stock model/version, or older private updater. The automatic route detects stock firmware, an active loader or an existing portable SMK updater. A generic Elite loader identity requires explicit model confirmation; wrong models and unsupported versions remain rejected. Physical Elite handoff validation remains pending.
 
 The embedded RAM loader validates JEDEC ID, supported boot-region checksum and the unit's calibration structure. It preflights the complete payload before erasing, rechecks each fetched sector, programs changed sectors only, reads them back, and checks the protected boot/calibration regions afterward. Writes are constrained to 0x4000–0x9d000 (end exclusive). This does not guarantee recovery from lost power while the application is being written.
 

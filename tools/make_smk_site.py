@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-only
-"""Stage the public browser preview; hardware candidates remain local builds."""
+"""Stage the website and the explicitly approved experimental hardware candidate."""
 import argparse
+import hashlib
+import json
 import shutil
 from pathlib import Path
 
@@ -22,16 +24,35 @@ for name in ('audio', 'fonts', 'screenshots'):
 for name in ('LICENSE', 'LICENSING.md'):
     shutil.copy2(ROOT / name, out / name)
 shutil.copytree(ROOT / 'LICENSES', out / 'LICENSES')
-# Do not silently promote the untested hardware candidate with the browser site.
-template = (web / 'installer.html').read_text(encoding='utf-8')
-head = template.split('<body', 1)[0].replace('<script type="module" src="installer/controller.js?v=smk-flow-r1"></script>', '').replace('<link rel="stylesheet" href="installer/installer.css">', '')
-(out / 'installer.html').write_text(head + '''<body class="landing-page"><main>
-<header class="masthead"><h1 class="melodee-wordmark">melodee <span>SMK</span></h1></header>
-<section class="landing-section"><span class="release-badge">HARDWARE PORT / IN DEVELOPMENT</span>
-<h2>Play Melodee in your browser.</h2>
-<p>The Studio and Simulator are available now. The SMK hardware build remains a development candidate awaiting device testing; this site does not offer a public firmware installation.</p>
-<p><a href="editor.html?audio=1">Open Studio →</a> · <a href="simulator.html">Open Simulator →</a> · <a href="index.html">Home</a></p>
-<p>Developers can find the local build and installer instructions in <a href="https://github.com/ChanceTheMaker/melodee-smk/blob/main/README_SMK.md">the source repository</a>.</p>
-</section></main></body></html>''', encoding='utf-8')
+# Pin the approved artifact: a local rebuild must not silently become public.
+firmware = web / 'firmware'
+manifest = json.loads((firmware / 'candidate.json').read_text(encoding='utf-8'))
+expected = {
+    'image': 'melodee-smk-1.1.0-dev1-candidate.bin',
+    'sha256': 'f6bbd1b5a1470accb9b9b87b03daa742ed59d01edb597333c79980140c36fa4d',
+    'bytes': 578624,
+    'update_product': 'SMK-37_940',
+    'update_version': 'MELODEE SMK 1.1.0-dev1',
+    'release_channel': 'public-development',
+    'installable': True,
+    'updater': True,
+    'hardware_tested': False,
+    'persistent_storage': False,
+    'usb_audio': False,
+}
+for key, value in expected.items():
+    if manifest.get(key) != value:
+        raise SystemExit('Unapproved firmware metadata: ' + key)
+app = (firmware / expected['image']).read_bytes()
+if len(app) != expected['bytes'] or hashlib.sha256(app).hexdigest() != expected['sha256']:
+    raise SystemExit('Approved application hash/size mismatch')
+shutil.copy2(web / 'installer.html', out / 'installer.html')
+(out / 'installer').mkdir()
+for source in (web / 'installer').iterdir():
+    if source.suffix in ('.js', '.css'):
+        shutil.copy2(source, out / 'installer' / source.name)
+(out / 'firmware').mkdir()
+for name in ('candidate.json', expected['image']):
+    shutil.copy2(firmware / name, out / 'firmware' / name)
 (out / '.nojekyll').write_text('')
-print('Staged browser preview:', out)
+print('Staged website and experimental development candidate:', out)
