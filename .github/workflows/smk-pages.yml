@@ -23,6 +23,7 @@ jobs:
         with:
           node-version: '22'
       - run: node tests/smk_browser_test.mjs && node web/installer/test_smk37_public.mjs
+      - run: node web/installer/test_install_flow.mjs && node web/installer/test_discovery.mjs
       - run: python3 tools/make_smk_site.py build/smk-site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
