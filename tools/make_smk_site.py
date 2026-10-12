@@ -24,6 +24,10 @@ for name in ('audio', 'fonts', 'screenshots'):
 for name in ('LICENSE', 'LICENSING.md'):
     shutil.copy2(ROOT / name, out / name)
 shutil.copytree(ROOT / 'LICENSES', out / 'LICENSES')
+(out / 'restore-stock').mkdir()
+for asset in (web / 'restore-stock').iterdir():
+    if asset.suffix in ('.html', '.css', '.js'):
+        shutil.copy2(asset, out / 'restore-stock' / asset.name)
 # Pin the approved artifact: a local rebuild must not silently become public.
 firmware = web / 'firmware'
 manifest = json.loads((firmware / 'candidate.json').read_text(encoding='utf-8'))
