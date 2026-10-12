@@ -1,8 +1,10 @@
+import {createProgress} from '../update-progress.js?v=progress1';
 // SPDX-License-Identifier: GPL-3.0-only
 import {buildSmkPublicPackage} from './smk37-package.js?v=melodee-dc7';
-import {parsePackage,installSmk,installStockSmk} from './smk37-update.js?v=melodee-dc7-doom';
+import {parsePackage,installSmk,installStockSmk} from './smk37-update.js?v=progress1';
 import {STOCK_SOURCES} from './smk37-stock.js';
 const $=id=>document.getElementById(id);
+const progress=createProgress($('status'));
 const dialog=document.getElementById('loader-confirm');
 async function confirmGeneric({identity,port,model}){
   document.getElementById('loader-identity').textContent=identity+' on '+port;
@@ -27,6 +29,7 @@ function controls(){
 }
 async function fetchChecked(url){const r=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(30000)});if(!r.ok)throw Error('Unable to load '+url+' (HTTP '+r.status+').');return r;}
 async function prepare(){
+  progress.start('prepare');
   const request=++generation,model=$('model').value,file=$('stock-file').files[0];prepared=null;preparing=true;$('confirm').checked=false;controls();status('Preparing Melodee for '+model+'… No device access.');
   try{
     const m=await (await fetchChecked('firmware/candidate.json')).json();
@@ -37,26 +40,26 @@ async function prepare(){
     if(pkg.stockModel!==model)throw Error('That file is for '+pkg.stockModel+'. Choose the matching model or its official 016 file.');
     await parsePackage(pkg.bytes,pkg.sha);
     if(request!==generation)return;
-    manifest=m;prepared=pkg;$('version').textContent=m.firmware;$('hash').textContent='Application SHA-256: '+m.sha256;
+    progress.ready();manifest=m;prepared=pkg;$('version').textContent=m.firmware;$('hash').textContent='Application SHA-256: '+m.sha256;
     status(support?m.firmware+' ready for '+model+'. Confirm the beta notice to enable Install.':'Files verified. Installing requires desktop Chrome or Edge on HTTPS or localhost with Web MIDI support.',!support);
     log('Prepared '+pkg.version+' for '+model+'; package SHA-256 '+pkg.sha+'. No MIDI ports opened.');
-  }catch(e){if(request!==generation)return;status(e.message+' If the automatic official-file download failed, use the local-file fallback above.',true);log('Preparation stopped: '+e.message);}
+  }catch(e){if(request!==generation)return;progress.fail();status(e.message+' If the automatic official-file download failed, use the local-file fallback above.',true);log('Preparation stopped: '+e.message);}
   finally{if(request===generation){preparing=false;controls();}}
 }
 $('model').addEventListener('change',prepare);$('stock-file').addEventListener('change',prepare);$('prepare').addEventListener('click',prepare);$('confirm').addEventListener('change',controls);
 $('route').addEventListener('change',()=>{$('confirm').checked=false;$('route-note').textContent=$('route').value==='stock'?'Automatically detects stock firmware, an active loader, or Felucca / Sloop / Melodee SMK.':'Requires the portable SMK updater (identity 922 or newer). Older private builds are refused before starting an update.';controls();});
 $('install-button').addEventListener('click',async()=>{
   if($('install-button').disabled||!prepared)return;
-  const pkg=prepared,route=$('route').value;installing=true;controls();
+  const pkg=prepared,route=$('route').value;installing=true;controls();progress.start();
   try{
     await parsePackage(pkg.bytes,pkg.sha);
     status('Requesting MIDI permission. Keep the SMK powered and USB connected.');
     const access=await navigator.requestMIDIAccess({sysex:true});
     log('Starting explicit '+route+' installation.');
     await (route==='stock'?installStockSmk:installSmk)(access,pkg,text=>{status(text);log(text);},{confirmGeneric});
-    status('Installed '+manifest.firmware+'. Check the screen, keys and sound on the SMK. For first-time device saves, use the linked storage backup/setup page, then restart.');
+    progress.done();status('Installed '+manifest.firmware+'. Check the screen, keys and sound on the SMK. For first-time device saves, use the linked storage backup/setup page, then restart.');
     $('confirm').checked=false;
-  }catch(e){status(e.message,true);log('Installation stopped: '+e.message);$('confirm').checked=false;}
+  }catch(e){progress.fail();status(e.message,true);log('Installation stopped: '+e.message);$('confirm').checked=false;}
   finally{installing=false;controls();}
 });
 window.addEventListener('beforeunload',event=>{if(installing){event.preventDefault();event.returnValue='';}});

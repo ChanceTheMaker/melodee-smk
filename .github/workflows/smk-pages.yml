@@ -22,6 +22,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: node web/test_update_progress.mjs
       - run: node web/restore-stock/test_restore.mjs
       - run: node tests/smk_browser_test.mjs && node web/installer/test_smk37_public.mjs
       - run: node web/installer/test_install_flow.mjs && node web/installer/test_discovery.mjs && node web/test_smk_updater_handoff.mjs
