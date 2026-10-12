@@ -8,7 +8,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Melodee Editor</title>
+<title>Melodee SMK — Studio</title>
 <style>
   /* Fukiai: Hügelton Instruments' icon font (MIT, FUKIAI-LICENSE.txt). Icons are text in .ic spans;
      they stay hidden until the face has loaded (html.fk), so a missing font never shows boxes. */
@@ -161,21 +161,20 @@
   #sysinfo th { padding-right: 16px; }
   [hidden] { display: none !important; }
 </style>
+<link rel="icon" type="image/svg+xml" href="favicon.svg"><link rel="stylesheet" href="fonts.css"><link rel="stylesheet" href="skin.css"><link rel="stylesheet" href="interface.css"><link rel="stylesheet" href="melodee.css"><link rel="stylesheet" href="smk-studio.css"><link rel="stylesheet" href="melodee-smk.css"><script src="locales.js"></script><script src="i18n.js"></script><script src="skin.js"></script><script defer src="site-nav.js"></script>
 </head>
-<body>
+<body class="editor-page">
 <main>
-  <button class="lang" id="lang"></button>
-  <h1>Melodee Editor</h1>
-  <p class="dim"><a href="../installer/" style="color:inherit" data-t="installer"></a></p>
+<header class="masthead"><div class="brand-row"><div><div class="eyebrow">SMK / SOUND LABORATORY</div><h1><a class="brand-home melodee-wordmark" href="index.html">melodee <span>SMK</span></a></h1><p class="tagline">For SMK-37 Pro &amp; Elite</p></div><nav class="site-nav" aria-label="Main navigation"><a data-nav="install" href="index.html">Home</a><a data-nav="studio" href="editor.html?audio=1">Studio</a><a data-nav="simulator" href="simulator.html">Simulator</a><a data-nav="manual" href="index.html#guide">Guide</a><a data-nav="features" href="index.html#features">Features</a></nav><div class="brand-links"><button id="lang" class="lang" type="button" aria-label="Language"></button></div></div><div data-appearance class="appearance"></div></header>
   <!-- always visible: connection, version, sync mode, the tabs and (Sound / Sequencer / Tracks) the track selector -->
   <header class="top">
     <div class="bar">
       <button id="connect" data-t="connect" data-ic="port_usb_c"></button>
-      <span id="version" class="dim"></span>
+      <div class="mode-switch" role="group" aria-label="Sound source"><button id="mode-device" type="button" aria-pressed="false">SMK Device</button><button id="mode-browser" type="button" aria-pressed="false">Browser Studio</button></div><a class="mode-sim" href="simulator.html">Simulator ↗</a><span id="version" class="dim"></span>
       <span id="live" class="dim"></span>
       <span id="mock" class="dim" hidden data-t="mock"></span>
     </div>
-    <div id="status"></div>
+    <div id="status" role="status"></div><div id="browser-session" hidden><button id="session-play">Play / Stop</button><button id="session-panic">Release notes</button><label>Browser volume <input id="audio-volume" type="range" min="0" max="100" value="35"></label><button id="session-export">Export session</button><button id="session-import">Import session</button><input id="session-file" type="file" accept=".json" hidden><span id="session-status" role="status"></span></div><div class="audio-scope" id="studio-scope" hidden><canvas id="scope-canvas" aria-label="Live audio waveform"></canvas></div>
     <nav class="tabs" id="tabs" role="tablist">
       <button role="tab" data-tab="sound" data-t="sound" data-ic="symbol_audio"></button>
       <button role="tab" data-tab="fm6" data-t="tabFm6" data-ic="ui_knob"></button>
@@ -218,7 +217,7 @@
         <button id="czexport">Export .syx</button><button id="czlibrary">Add to library</button></p>
       <div id="czbankpanel" hidden>
         <h3>CZ-1 user banks</h3>
-        <p class="dim">Eight banks of 16 tones, stored on the FM-1. Larger imported files fill consecutive banks.</p>
+        <p class="dim">Eight banks of 16 tones, stored in the connected runtime. Larger imported files fill consecutive banks.</p>
         <p class="bar"><label>Bank <select id="czbank"></select></label><label>Patch <select id="czslot"></select></label>
           <button id="czbankrefresh">Refresh banks</button><button id="czbankload">Load patch</button>
           <button id="czbankstore">Save tone</button><button id="czbankerase">Erase patch</button></p>
@@ -379,12 +378,27 @@
     </div>
   </section>
 
-  <footer><a href="https://github.com/keremimo/melodee" target="_blank" rel="noopener">Melodee</a> by Ellic Studio,
-    based on <a href="https://github.com/hugelton/Felucca" target="_blank" rel="noopener">Felucca</a> by Leo Kuroshita (@kurogedelic),
-    <a href="https://hugelton.com" target="_blank" rel="noopener">Hügelton Instruments</a>. GPL-3.0.<br>
-    <span data-t="foot"></span> M-VAVE and FM-1 are trademarks of their respective owners.<br>
-    <a href="FUKIAI-LICENSE.txt" data-t="iconsCredit"></a></footer>
+  <footer>Melodee SMK hardware port, Studio and simulator by Chance Roth (<a href="https://github.com/ChanceTheMaker">@ChanceTheMaker</a>).<br>Melodee by Kerem Kılıç (<a href="https://github.com/keremimo/melodee">keremimo / Ellic Studio</a>), based on Felucca by Leo Kuroshita (@kurogedelic), Hügelton Instruments. GPL-3.0. <a href="FUKIAI-LICENSE.txt">Icon license</a>.<br>M-VAVE, SMK-37 and the referenced synthesizer names belong to their respective owners.</footer>
+<section class="play-keyboard" aria-labelledby="play-title">
+    <span id="play-title" class="sr-only" data-i18n="play.title"></span>
+    <div class="play-controls">
+      <div class="octave-controls">
+        <button id="play-oct-down" type="button" aria-label="Octave down" data-i18n-aria-label="site.octave_down"><span data-i18n="site.oct">Oct−</span></button>
+        <button id="play-oct-up" type="button" aria-label="Octave up" data-i18n-aria-label="site.octave_up"><span data-i18n="site.octx">Oct+</span></button>
+        <label><span data-i18n="play.octave"></span><select id="play-octave"></select></label>
+      </div>
+      <label><span data-i18n="play.channel"></span><select id="play-channel"><option value="auto" data-i18n="play.follow">Follow track</option></select></label>
+      <label><span data-i18n="play.velocity"></span><input id="play-velocity" type="range" min="1" max="127" value="100"><output id="play-velocity-value">100</output></label>
+      <label><input id="play-typing" type="checkbox" checked><span data-i18n="play.typing"></span></label>
+      <button id="play-sustain" class="tog" aria-pressed="false" data-i18n="play.sustain" disabled></button>
+      <button id="play-stop" data-i18n="play.stop" disabled></button>
+    </div>
+    <div class="piano-scroll"><div class="piano" id="play-keys" role="group" aria-labelledby="play-title" aria-describedby="play-navigation"></div></div>
+    <p id="play-help"></p>
+    <p id="play-navigation" class="sr-only" data-i18n="play.navigation"></p>
+  </section>
 </main>
+<script src="keyboard.js"></script><script src="studio-widgets.js"></script><script src="select-wheel.js"></script>
 <script>
 "use strict";
 /*PROTO-BEGIN*/
@@ -1555,7 +1569,7 @@ async function auditionPatch(rq, info, pt, opt = {}) {
 /* WATCH on (asking for TRACK_CHANGED too): false when the firmware does not know it (older than protocol v2),
    else 1, or 3 when it also has TRACK_PARAM / TRACK_CHANGED (protocol v4) */
 async function startWatch(rq) {
-  try { const on = parse[CMD.WATCH](await rq(req.watch(3), { timeout: 300, retries: 1, quiet: true })).on; return on & 1 ? on & 3 : false; }
+  try { const on = parse[CMD.WATCH](await rq(req.watch(3), { timeout: browserMode ? 2000 : 300, retries: 1, quiet: true })).on; return on & 1 ? on & 3 : false; }
   catch (e) { if (e.message === "closed") throw e; return false; }
 }
 
@@ -2962,7 +2976,7 @@ const TEXT = {
     badEngine: "This firmware has no such engine: ", flashFail: "Write failed (rc {rc})",
     installer: "Melodee installer",
     tabSeq: "Sequencer", tabTracks: "Tracks", tabSettings: "Settings",
-    needDevice: "Connect the FM-1 to edit.", smpNone: "This firmware has no user sample slots.",
+    needDevice: "Choose Browser Studio to play, or connect your Melodee SMK.", smpNone: "This firmware has no user sample slots.",
     bankConnect: "Connect the FM-1 to see its user presets too.", bankNone: "This firmware has no user presets.",
     mixer: "Mixer", mixHelp: "The four tracks of the device's MIXER page. The fader is the level. Pan is written to any track without changing the selection (firmware 0.8: by selecting it for a moment). REC shows a track armed for live recording on the device.",
     level: "Level", pan: "Pan", mute: "Mute", rec: "REC", selectTrack: "Select", selectedTrack: "Selected",
@@ -2980,7 +2994,7 @@ function say(message) { lastKey = null; lastArg = ""; $("status").textContent = 
 function applyLang() {
   document.documentElement.lang = lang;
   document.querySelectorAll("[data-t]").forEach((e) => setLabel(e, t(e.dataset.t)));
-  $("lang").textContent = t("other");
+
   setLabel($("connect"), t(dev ? "disconnect" : "connect"));
   if (lastKey) $("status").textContent = t(lastKey) + lastArg;
   $("libq").placeholder = t("libSearch");
@@ -2990,7 +3004,7 @@ function applyLang() {
   renderPreferences(true);
   renderPanels();
 }
-$("lang").addEventListener("click", () => { lang = lang === "ja" ? "en" : "ja"; applyLang(); });
+window.MelodeeI18n.onChange(() => { lang = document.documentElement.lang === "ja" ? "ja" : "en"; applyLang(); });
 
 /* ---------------------------------------------------------------- tabs --- */
 /* one panel at a time; the last one is remembered (localStorage) and in the URL hash (#sound ...) */
@@ -3057,6 +3071,7 @@ $("mock").hidden = !MOCK;
 let mock = null;
 
 /* -------------------------------------------------------------- state --- */
+let browserSynth = null, browserMode = false;
 let access = null;     /* MIDIAccess */
 let dev = null;        /* {link, input, output, info, pdesc[], gdesc[], names[][], dump, steps[], slotUsed[],
                           keys[] (paramKeys), watch (pushes on), bank ({total, slots[]} or null: no user bank)} */
@@ -3137,19 +3152,20 @@ async function connect() {
   connecting = true;
   let connectedDevice = null;
   wantConnected = true;
-  if (!MOCK && !navigator.requestMIDIAccess) { connecting = false; sayK("nomidi"); return; }
+  if (!MOCK && !browserMode && !navigator.requestMIDIAccess) { connecting = false; sayK("nomidi"); return; }
   $("connect").disabled = true;
   sayK("connecting");
   try {
     if (!access) {
-      if (MOCK) { mock = makeMockDevice({ legacy: QS.get("legacy") === "1", auto: QS.get("mockauto") !== "0" }); access = mock.access; }
+      if (browserMode) { await browserSynth.start({waitForAudio:false}); access = browserSynth.access; }
+      else if (MOCK) { mock = makeMockDevice({ legacy: QS.get("legacy") === "1", auto: QS.get("mockauto") !== "0" }); access = mock.access; }
       else {
         try { access = await navigator.requestMIDIAccess({ sysex: true }); }
         catch (e) { sayK("denied"); return; }
       }
       access.onstatechange = onState;
     }
-    const isF = (p) => /melodee|felucca/i.test(p.name || "") && p.state !== "disconnected";
+    const isF = (p) => /melodee|felucca|smk-37/i.test(p.name || "") && p.state !== "disconnected";
     const input = [...access.inputs.values()].find(isF);
     const output = [...access.outputs.values()].find(isF);
     if (!input || !output) { sayK("nodevice"); return; }
@@ -3397,7 +3413,41 @@ function modDst(d, txt) {
   return e && visible(e) ? e.label : txt;
 }
 
+let studioWidgets = [];
+let widgetsPending = false;
+function refreshWidgets() {
+  if (widgetsPending) return;
+  widgetsPending = true;
+  queueMicrotask(() => { widgetsPending = false; if (dev?.dump) for (const widget of studioWidgets) widget.update(); });
+}
+function addStudioWidget(section, kind, filterIds) {
+  if (!window.MelodeeWidgets) return;
+  const session = dev;
+  const widget = window.MelodeeWidgets.mount(kind, {
+    read: id => session.dump.p[id],
+    format: id => fmtValue(session.pdesc[id], session.dump.p[id]).filter(Boolean).join(" "),
+    t: name => window.MelodeeI18n.t('widgets.' + name), filterIds,
+    begin: id => { if (dev === session) dragging = key(0, id); },
+    end: () => { dragging = null; },
+    reset: id => {
+      if (dev !== session) return;
+      const c = ctl.get(key(0,id));
+      if (c) { c.input.value = String(c.desc.def); userSet(0,id,c.desc.def,true); }
+    },
+    write: (id, value) => {
+      if (dev !== session) return;
+      const c = ctl.get(key(0, id));
+      if (!c) return;
+      value = Math.max(c.desc.min, Math.min(c.desc.max, Math.round(value)));
+      c.input.value = String(value);
+      userSet(0, id, value, true);
+    },
+  });
+  section.append(widget.element); studioWidgets.push(widget);
+}
+
 function buildGroups() {
+  studioWidgets = [];
   ctl.clear();
   dev.built = dev.dump.engine;
   dev.builtMode = dev.dump.p[dev.info.pe0+7];
@@ -3407,7 +3457,7 @@ function buildGroups() {
   if (knownLayout(info)) {
     for (const g of LAYOUT(info.pe0)) {
       if (dev.dump.engine===15 && ["ENV","EDIT"].includes(g.t)) continue;
-      const div = el("div", { class: "group" }, el("h2", { ic: HEAD_IC[g.t], text: g.engine ? `EDIT ${info.engines[dev.dump.engine] || ""}` : g.t }));
+      const div = el("div", { class: "group control-bank studio-section" }, el("h2", { ic: HEAD_IC[g.t], text: g.engine ? `EDIT ${info.engines[dev.dump.engine] || ""}` : g.t }));
       if (g.mod != null) {                          /* MOD: slot number, SRC, DST, AMT in one row */
         for (let k = 0; k < 4; k++) {
           const r = [0, 1, 2].map((j) => paramRow(0, g.mod + 3 * k + j));
@@ -3420,14 +3470,19 @@ function buildGroups() {
         groups.groups.push(div);
         continue;
       }
+      const banks = el("div", {class:"section-grid"}); div.append(banks);
       for (const [title, s, ids] of g.pages) {
         if (title === "TIMING" && dev.pdesc[8]?.label !== "QNT") continue;
         if ((title === "DLY" && dev.gdesc[4]?.label === "-") || (title === "DLY 2" && (dev.gdesc[25]?.label ?? "-") === "-")) continue;   /* (firmware without the delay) */
         const rows = ids.map((id) => paramRow(s, id)).filter(Boolean);
         if (!rows.length) continue;
         const tt = g.engine && (dev.titles[dev.dump.engine] || [])[g.pages.findIndex((x) => x[0] === title)];
-        if (g.pages.length > 1) div.append(el("h3", { ic: PAGE_IC[tt || title], text: tt || title }));
-        div.append(...rows);
+        const bank = el('div',{class:'section-bank'},el('h2',{ic:PAGE_IC[tt||title],text:tt||title}),...rows);banks.append(bank);
+        if(g.t==='ENV'&&title==='ENV')addStudioWidget(bank,'env');
+        if(g.t==='LFO'&&title==='LFO')addStudioWidget(bank,'lfo');
+        if(g.t==='ARP'&&title==='ARP')addStudioWidget(bank,'arp');
+        if(g.t==='FX'&&title==='SLICER')addStudioWidget(bank,'slicer');
+        if(g.engine&&dev.dump.engine===0&&ids.includes(info.pe0+4))addStudioWidget(bank,'filter',[info.pe0+4,info.pe0+5]);
       }
       groups[g.tab || "groups"].push(div);
     }
@@ -3441,7 +3496,7 @@ function buildGroups() {
     groups.groups.push(a, b);
     groups.setgroups.push(c);
   }
-  for (const [id, divs] of Object.entries(groups)) $(id).replaceChildren(...divs);
+  for (const [id, divs] of Object.entries(groups)) { $(id).replaceChildren(...divs); divs.forEach((c,i)=>c.dataset.cardKey=id+":"+(c.querySelector("h2")?.textContent||i)); window.MelodeeSkin.decorate($(id),String(dev.dump.engine)); }
   $("p5panel").hidden=!(dev?.info.prophet&&dev?.dump.engine===19);
   $("czpanel").hidden = !dev.info.cz || dev.dump.engine!==15;
   $("czbankpanel").hidden = !dev.info.czBanks;
@@ -3539,7 +3594,7 @@ function paramRow(s, id) {
   }
   input.title = d.label;
   const out = el("span", { class: "v" });
-  const row = el("div", { class: "row" }, el("span", { text: d.label }), input, out);
+  const row = el("div", { class: "row" }, el("span", { text: d.label }), window.MelodeeSkin.enhance(input), out);
   ctl.set(k, { input, out, desc: d, scope: s, id, row });
   showValue(k, s ? dev.dump.g[id] : dev.dump.p[id], true);
   return row;
@@ -3552,6 +3607,8 @@ function showValue(k, v, force) {
   const [txt0, unit] = fmtValue(c.desc, v), txt = modDst(c.desc, txt0);
   c.out.textContent = unit ? `${txt} ${unit}` : txt;
   if (force || !touched(k)) c.input.value = String(v);
+  window.MelodeeSkin.sync(c.input);
+  refreshWidgets();
 }
 /* the user is working on this control: polling and pushes must not move it */
 function touched(k) {
@@ -5120,11 +5177,13 @@ $("fm6bankexp").addEventListener("click", () => op(async () => {
 $("connect").addEventListener("click", () => {
   if (dev) { wantConnected = false; disconnect(); } else connect();
 });
+window.MelodeeStudio = { get device(){return dev;}, get synth(){return browserSynth;}, get browser(){return browserMode;}, async useBrowser(){ if(connecting)return; disconnect();access=null;browserMode=true; if(!browserSynth){const {SMKBrowserSynth}=await import('./audio/smk-browser.js');browserSynth=new SMKBrowserSynth();} await connect();return !!dev?.dump; },async useDevice(){if(connecting)return; window.MelodeePlay?.release();if(browserSynth)await browserSynth.stop();disconnect();access=null;browserMode=false;await connect();return !!dev?.dump;},release(){window.MelodeePlay?.release();browserSynth?.release();} };
 applyLang();
 showTab(tab);
 libInit();
 if (!MOCK && !navigator.requestMIDIAccess) sayK("nomidi");
 })();
 </script>
+<script type="module" src="studio-session.js"></script>
 </body>
 </html>

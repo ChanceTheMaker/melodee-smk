@@ -1,3 +1,5 @@
+> **Melodee SMK development branch:** see [README_SMK.md](README_SMK.md) for the SMK port, local Studio/simulator and build status. The upstream FM-1 installation instructions below do not apply to the SMK port.
+
 # Melodee
 
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)](LICENSE)

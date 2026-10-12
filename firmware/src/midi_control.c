@@ -66,6 +66,9 @@ static int midi_note_held(const track_t *t, uint32_t note)
 /* a key held on track t sounds note (the key's own note, or a tone of its chord) */
 static int midi_local_held(const track_t *t, uint32_t note)
 {
+#ifdef MELODEE_SMK
+    if(smk_local_held(t,note)) return 1;
+#endif
     uint32_t k, i;
     for (k = 0; k < 27u; k++)
         if (kb_chn[k] && kb_trk[k] == trk_index(t))

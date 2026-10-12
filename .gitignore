@@ -2,3 +2,6 @@ build/
 .DS_Store
 __pycache__/
 *.fwsc
+
+# Generated local hardware candidates are not public release artifacts.
+web/firmware/

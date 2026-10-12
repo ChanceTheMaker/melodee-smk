@@ -1,0 +1,87 @@
+﻿/* SPDX-License-Identifier: GPL-3.0-only
+   SMK product treatment; shared theme, gallery and button styles live in interface.css. */
+.landing-page .smk-hero { grid-template-columns:1fr 1.15fr; gap:28px; padding:0; }
+.landing-page .smk-hero h2 { font:750 clamp(32px,3.3vw,48px)/1.12 var(--ui-font); letter-spacing:-1.5px; text-transform:none; }
+.landing-page .smk-hero .smk-beta { margin-top:26px; font-size:12px; line-height:1.7; }
+.landing-page .hero-actions #go { text-decoration:none; white-space:normal; }
+.landing-page .hero-actions #release { font:11px/1.5 var(--ui-font); margin-top:12px; color:var(--dim); text-align:center; }
+.landing-page .smk-hero .hero-actions { gap:12px; }
+.landing-page .smk-instrument { --smk-body:#d9dbd5; --smk-control:#262c2d; --smk-ink:#333c3d; --smk-key:#252b2c; --smk-control-ink:#ddd; margin:0; min-width:0; }
+.landing-page .smk-finish-layer[data-model=elite] { --smk-body:#687481; --smk-control:#e76522; --smk-ink:#f1f1e9; --smk-key:#df5923; --smk-control-ink:#402b23; }
+.smk-instrument svg { display:block; width:100%; height:auto; overflow:visible; filter:drop-shadow(0 20px 14px #0005); transform:rotate(-4deg); margin:25px 0 36px; }
+.smk-chassis { fill:var(--smk-body); stroke:#0005; stroke-width:2; }
+.smk-recess { fill:#151b1d; stroke:#0005; }
+.smk-control { fill:var(--smk-control); stroke:#0007; stroke-width:1.2; }
+.smk-ink { fill:var(--smk-ink); font:6px Arial,sans-serif; text-anchor:middle; }
+.smk-wordmark { font-size:16px; font-weight:bold; letter-spacing:1px; }
+.smk-control-label { fill:var(--smk-control-ink); font:5px Arial,sans-serif; text-anchor:middle; }
+.smk-pad-edge { fill:#888b8b; stroke:#0004; }
+.smk-pad { fill:#c5f3ec; }
+.smk-pad-1 { fill:#e6d2f5; }
+[data-model=elite] .smk-pad { fill:#fff5da; }
+.smk-white-key { fill:var(--smk-white-key,url(#smk-key)); stroke:#777; stroke-width:.8; }
+.smk-black-key { fill:var(--smk-key); stroke:#0006; }
+.smk-solid { animation:smk-reveal 2.4s ease both; }
+.smk-wire { fill:none; stroke:var(--accent); stroke-width:1; color:var(--accent); animation:smk-wire 2.4s ease both; }
+/* Override the referenced hardware shapes in the wireframe use-instance. */
+.smk-wire use { filter:none; }
+.smk-instrument figcaption { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:16px; }
+.landing-page .studio-gallery-section .hero-link { white-space:normal; }
+.landing-page #install { scroll-margin-top:18px; }
+.landing-page #install-button { background:linear-gradient(145deg,#ce5360,#a92233); color:white; border:1px solid #e4828b; box-shadow:inset 0 1px #fff6,0 4px 0 #6f1723; }
+.landing-page #install-button:disabled { opacity:.5; }
+@keyframes smk-reveal { 0%,25% {opacity:0} 100% {opacity:1} }
+@keyframes smk-wire { 0%,25% {opacity:1} 100% {opacity:0} }
+@media(max-width:900px) { .landing-page .smk-hero {grid-template-columns:1fr} .smk-instrument {max-width:720px; width:100%; justify-self:center} .smk-instrument svg {margin:10px 0 28px} }
+@media(max-width:520px) { .landing-page .install-console {padding:20px 16px} .landing-page .smk-hero h2 {font-size:36px} .landing-page .hero-actions {flex-direction:column;align-items:stretch} .landing-page .hero-actions .install-action {width:100%} .landing-page .hero-actions #go {box-sizing:border-box;width:100%} }
+@media(prefers-reduced-motion:reduce) { .smk-solid {animation:none;opacity:1} .smk-wire {animation:none;opacity:0} }
+.smk-wire-shapes :is(rect,circle,ellipse,path) { fill:none; stroke:var(--accent); stroke-width:1; }
+.smk-wire-shapes text { fill:var(--accent); stroke:none; }
+/* The install section supplies the single divider beneath the hero. */
+.landing-page .smk-hero { border-bottom:0; margin-bottom:0; padding-bottom:16px; }
+
+/* Real product finishes. The palette changes independently of the site theme. */
+.smk-finish-layer[data-finish=red] { --smk-body:#9f1e25; --smk-ink:#f2e3d8; }
+.smk-finish-layer[data-finish=pink] { --smk-body:#eab3b9; --smk-ink:#553e44; --smk-control-ink:#444; }
+.smk-finish-layer[data-finish=charcoal] { --smk-body:#373d40; --smk-ink:#eee; }
+.smk-finish-layer[data-finish=black] { --smk-body:#171b1d; --smk-ink:#ddd; --smk-white-key:#34393c; --smk-key:#171b1c; }
+[data-finish=pink] .smk-soft-button { fill:#dfdeda; }
+[data-finish=pink] .smk-pad { fill:#f1e8ec; }
+:is([data-finish=red],[data-finish=charcoal],[data-finish=black]) .smk-pad { fill:#262c30; }
+:is([data-finish=red],[data-finish=charcoal],[data-finish=black]) .smk-pad-edge { fill:#a0c6c3; }
+.smk-solid :is(rect,circle,text) { transition:fill 1.1s ease,stroke 1.1s ease; }
+@media(prefers-reduced-motion:reduce) { .smk-solid * {transition:none} }
+.smk-instrument :is(.smk-chassis,.smk-control,.smk-white-key,.smk-black-key,.smk-ink,.smk-control-label,.smk-pad,.smk-pad-edge) { transition:fill 1.1s ease,stroke 1.1s ease; }
+@media(prefers-reduced-motion:reduce) { .smk-instrument * {transition:none} }
+/* Custom properties also reach shapes instantiated by SVG <use>. */
+.smk-pad { fill:var(--smk-pad-top,#c5f3ec); }
+.smk-pad-1 { fill:var(--smk-pad-bottom,#e6d2f5); }
+.smk-pad-edge { fill:var(--smk-pad-rim,#888b8b); }
+.smk-soft-button { fill:var(--smk-soft,var(--smk-control)); }
+.smk-finish-layer[data-finish=pink] { --smk-soft:#dfdeda; --smk-pad-top:#f1e8ec; --smk-pad-bottom:#f1e8ec; }
+.smk-finish-layer:is([data-finish=red],[data-finish=charcoal],[data-finish=black]) { --smk-pad-top:#262c30; --smk-pad-bottom:#262c30; --smk-pad-rim:#86a8a6; }
+.smk-finish-layer[data-finish=elite] { --smk-pad-top:#fff5da; --smk-pad-bottom:#fff5da; }
+
+/* Separate painted layers create a true finish-to-finish dissolve. */
+.smk-finish-layer { opacity:0; transition:opacity 1.5s ease-in-out; }
+.smk-finish-layer.is-visible { opacity:1; }
+.smk-instrument :is(rect,circle,text,path) { transition:none; }
+@media(prefers-reduced-motion:reduce) { .smk-finish-layer { transition:none; } }
+/* Reuse the FM-1 panel guide with SMK geometry and the same six-group layout. */
+.smk-guide-art { --smk-body:#dedfd8; --smk-control:#292f31; --smk-ink:#343a3c; --smk-key:#242a2c; --smk-control-ink:#eee; }
+#guide .panel-art {max-width:520px}
+#guide .panel-explorer {grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+#guide .panel-highlight {stroke-width:5}
+#guide .smk-guide-footnote {margin-top:16px;margin-bottom:0}
+.landing-page .smk-launch-label {font:700 10px/1.5 var(--ui-font);letter-spacing:.2em;color:var(--accent);margin-bottom:12px}
+.landing-page .smk-launch-copy strong {color:var(--fg)}
+.landing-page .smk-launch-detail {font-size:13px;margin-top:12px}
+.smk-install-help {margin:18px 0}
+.smk-install-help summary {cursor:pointer;font-size:13px;color:var(--accent)}
+@media(max-width:900px) {#guide .panel-explorer {grid-template-columns:1fr}}
+/* Fit the front panel directly inside the cabinet instead of nesting an inset box. */
+:root[data-skin] .landing-page .install-console { margin:0; border:0; border-radius:0; width:100%; box-sizing:border-box; }
+
+/* Melodee's orange action accent and neutral chassis, independent of SMK finish. */
+:root[data-skin=melodee] .landing-page :is(#go,#install-button){background:linear-gradient(145deg,#ff984e,#ff621a);border-color:#ffa66e;color:#160a02;box-shadow:inset 0 1px #fff7,0 4px 0 #843609,0 8px 20px #ff621a20}
+:root[data-skin=melodee] .landing-page .hero-link{background:linear-gradient(145deg,#373940,#202126);border-color:#555761;color:#f2f2f2;box-shadow:inset 0 1px #fff2,0 3px 0 #090a0c}

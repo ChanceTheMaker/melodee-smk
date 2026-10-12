@@ -1492,7 +1492,9 @@ static uint32_t persist_retry_ms;
 
 static void persist_boot(void)                    /* before settings_init / panel_init */
 {
-#if MELODEE_FLASH
+#if defined(MELODEE_SMK_HARDWARE)
+    flash_ok = 0; /* No SMK persistent storage backend in the first candidate. */
+#elif MELODEE_FLASH
     persist_t p;
     uint32_t f = irq_save();
     flash_ok = FL_FAR(fl_jedec_ram)() == 0x856014u;       /* the expected 1 MiB part, else stay RAM-only */

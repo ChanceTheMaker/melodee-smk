@@ -2063,6 +2063,9 @@ static void setup_show(const char *what, const char *name)     /* "PRESS" / "TUR
 }
 static void panel_setup(void)
 {
+#ifdef MELODEE_SMK
+    ui_message("SMK FIXED PANEL");return;
+#endif
     uint32_t i, used = 0, t0 = fm1_ms;
     const panel_t old = panel;
     setup_title();

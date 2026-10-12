@@ -1,0 +1,35 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Melodee SMK — Simulator</title>
+<link rel="stylesheet" href="skin.css">
+<link rel="stylesheet" href="interface.css">
+<link rel="stylesheet" href="melodee.css?v=b2-thumbs"><link rel="stylesheet" href="smk-studio.css">
+<link rel="stylesheet" href="fonts.css?v=smk2">
+<script src="locales.js"></script><script src="i18n.js"></script><script src="skin.js"></script>
+<script defer src="site-nav.js?v=smk-simulator"></script>
+
+<style>
+body{margin:0;background:var(--bg);color:var(--fg);font:13px/1.4 system-ui,sans-serif}main{max-width:1400px;margin:auto;padding:24px}a{color:inherit}button{font:inherit;cursor:pointer}button:disabled{opacity:.45;cursor:default}[hidden]{display:none!important}.bar{display:flex;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:14px}#audio-volume-label{display:flex;align-items:center;gap:10px}#audio-volume{width:120px}#audio-status{margin-left:auto}.sim-intro{padding:28px 0;text-align:center}.sim-intro h2{font-size:24px}.sim-intro p{color:var(--dim)}footer{font-size:11px;line-height:1.8;margin-top:24px}#session-status{flex:1;text-align:right}@media(max-width:700px){main{padding:12px}#audio-status{width:100%;margin:0}}
+</style>
+<link rel="stylesheet" href="melodee-smk.css"><link rel="icon" href="favicon.svg">
+</head>
+<body class="simulator-page">
+<main id="simulator">
+<header class="masthead"><div class="brand-row"><div><div class="eyebrow">SMK / SOUND LABORATORY</div><h1><a class="brand-home melodee-wordmark" href="index.html">melodee <span>SMK</span></a></h1><p class="tagline">For SMK-37 Pro &amp; Elite</p></div><nav class="site-nav" aria-label="Main navigation"><a data-nav="install" href="index.html">Home</a><a data-nav="studio" href="editor.html?audio=1">Studio</a><a data-nav="simulator" href="simulator.html">Simulator</a><a data-nav="manual" href="index.html#guide">Guide</a><a data-nav="features" href="index.html#features">Features</a></nav><div class="brand-links"><button id="lang" class="lang" type="button" aria-label="Language"></button></div></div><div data-appearance class="appearance"></div></header>
+<header class="top">
+  <div class="bar" id="audio-mode"><button id="sim-audio" type="button">Enable audio</button><strong>SMK Simulator</strong><label id="audio-volume-label">Volume <input id="audio-volume" type="range" min="0" max="100" value="35" aria-label="Browser audio volume"></label><span id="audio-status" role="status">Play in your browser. No device needed.</span></div>
+  <div class="audio-scope"><canvas id="scope-canvas" aria-label="Live browser audio waveform"></canvas></div>
+</header>
+<div id="browser-session"><button id="session-play" type="button" disabled>Play / Stop</button><button id="session-panic" type="button" disabled>Release notes</button><button id="session-export" type="button" disabled>Export session</button><button id="session-import" type="button" disabled>Import session</button><input id="session-file" type="file" accept=".json,application/json" hidden><span id="session-status" role="status">Shares browser sessions with Studio.</span></div>
+<section class="sim-intro" id="sim-intro"><h2>Your SMK, right in the browser.</h2><p>Starting the native Melodee SMK engine. If your browser blocks autoplay, click Enable audio.</p></section>
+<section id="smk-simulator" hidden aria-label="SMK hardware simulator"></section>
+<noscript>This simulator requires JavaScript and a browser with Web Audio support.</noscript>
+<footer>Melodee SMK hardware port, Studio and simulator by Chance Roth (<a href="https://github.com/ChanceTheMaker">@ChanceTheMaker</a>).<br>Melodee by Kerem Kılıç (<a href="https://github.com/keremimo/melodee">keremimo / Ellic Studio</a>), based on Felucca by Leo Kuroshita (@kurogedelic), Hügelton Instruments. GPL-3.0. <a href="FUKIAI-LICENSE.txt">Icon license</a>.<br>M-VAVE, SMK-37 and the referenced synthesizer names belong to their respective owners.</footer>
+</main>
+<script type="module" src="simulator-page.js?startup=2"></script>
+</body>
+</html>

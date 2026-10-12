@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   nightly:
+    if: github.repository == 'keremimo/melodee'
     runs-on: ubuntu-22.04
     timeout-minutes: 60
     env:
