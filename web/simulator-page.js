@@ -13,7 +13,7 @@ function startAudio(){
   if(starting)return starting;
   busy=true;controls();
   starting=(async()=>{
-    try{ $('audio-status').textContent='Starting simulator…';await synth.start({waitForAudio:false});synth.context.onstatechange=audioState;synth.volume(+$('audio-volume').value/100);if(!panel)panel=createSMKSimulator($('smk-simulator'),synth);panel.show(true);$('sim-intro').hidden=true;synth.showScope($('scope-canvas'));running=synth.context.state==='running';$('audio-status').textContent=running?'Native SMK engine · Browser audio':'Play a key or pad to enable audio.';}
+    try{ $('audio-status').textContent='Starting simulator…';await synth.start({waitForAudio:false});synth.context.onstatechange=audioState;synth.volume(+$('audio-volume').value/100);if(!panel)panel=createSMKSimulator($('smk-simulator'),synth);panel.show(true);$('sim-intro').hidden=true;running=synth.context.state==='running';$('audio-status').textContent=running?'Native SMK engine · Browser audio':'Play a key or pad to enable audio.';}
     catch(e){$('audio-status').textContent=e.message;}
     finally{starting=null;busy=false;controls();}
   })();
