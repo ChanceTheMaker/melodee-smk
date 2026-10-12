@@ -29,7 +29,7 @@ async function prepare(){
   const request=++generation,model=$('model').value,file=$('stock-file').files[0];prepared=null;preparing=true;$('confirm').checked=false;controls();status('Preparing Melodee for '+model+'… No device access.');
   try{
     const m=await (await fetchChecked('firmware/candidate.json')).json();
-    if(m.release_channel!=='local-development'||!m.installable||!m.updater||m.hardware_tested!==false||m.update_product!=='SMK-37_940'||m.update_version!=='MELODEE SMK 1.1.0-dev1'||!/^[a-z0-9.-]+-candidate\.bin$/.test(m.image))throw Error('The staged manifest is not this reviewed Melodee development candidate.');
+    if(!['local-development','public-development'].includes(m.release_channel)||!m.installable||!m.updater||m.hardware_tested!==false||m.update_product!=='SMK-37_940'||m.update_version!=='MELODEE SMK 1.1.0-dev1'||!/^[a-z0-9.-]+-candidate\.bin$/.test(m.image))throw Error('The staged manifest is not this reviewed Melodee development candidate.');
     const app=new Uint8Array(await (await fetchChecked('firmware/'+m.image)).arrayBuffer());
     const stock=new Uint8Array(await (file?file.arrayBuffer():fetchChecked(STOCK_SOURCES[model]).then(r=>r.arrayBuffer())));
     const pkg=await buildSmkPublicPackage(stock,app,{localCandidate:true,product:m.update_product,version:m.update_version,bytes:m.bytes,sha256:m.sha256});

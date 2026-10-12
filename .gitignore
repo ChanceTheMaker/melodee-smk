@@ -3,5 +3,7 @@ build/
 __pycache__/
 *.fwsc
 
-# Generated local hardware candidates are not public release artifacts.
-web/firmware/
+# Only the explicitly approved development release is published.
+web/firmware/*
+!web/firmware/candidate.json
+!web/firmware/melodee-smk-1.1.0-dev1-candidate.bin
