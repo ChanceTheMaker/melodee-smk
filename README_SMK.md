@@ -2,9 +2,11 @@
 
 Independent SMK-37 Pro & Elite port of [Melodee](https://github.com/keremimo/melodee), with the shared SMK Studio and simulator website.
 
-**Current milestone: 1.1.0-dev1 — local browser preview and installable development candidate.**
+**Current work: 1.1.0-b1 — local integration and device-test preparation.**
 
-This is a local development candidate, not a hardware-validated release. No SMK was flashed or used to validate this port. The browser uses Melodee's C synthesis and UI compiled to WebAssembly; it is not a cycle-accurate emulator of the JieLi chip, USB hardware or Bluetooth radio.
+The local installer now stages b1 after passing its RAM-placement, protected-range, interrupted-write and backup-gate checks. See [the b1 test and storage guide](docs/SMK_BETA_TEST.md) for the exact release state and device checks.
+
+The user has installed and played the earlier dev1 build on an SMK. The new b1 persistence, physical MIDI and USB audio changes still require device validation. The browser uses Melodee's C synthesis and UI compiled to WebAssembly; it is not a cycle-accurate emulator of the JieLi chip, USB hardware or Bluetooth radio.
 
 ## Open locally
 
@@ -25,7 +27,7 @@ The front page includes the rotating Pro/Elite hardware illustration, native Mel
 
 - Native Melodee engines: Prophet, FM6, CZ-1, SID and drums; native editor protocol and sound parameter descriptors.
 - Melodee's existing deep Prophet/CZ/FM6 editors, sequencer, track mixer, browser Library, project and settings screens.
-- Shared website themes: Melodee Original, Stage Red, Matrix, Vintage DX7, Model D Walnut, Chocolate Factory, Vaporwave, Midnight Studio, Space Mission, Bauhaus, Ocean Lab, Arcade '84 and high contrast; light/dark modes and full-width toggle.
+- Shared website themes: Melodee Atelier, Stage Red, Matrix, Vintage DX7, Model D Walnut, Chocolate Factory, Vaporwave, Midnight Studio, Space Mission, Bauhaus, Ocean Lab, Arcade '84 and high contrast; light/dark modes and full-width toggle.
 - Knobs/sliders per Sound card, movable cards, native parameter readouts and interactive envelope/LFO/arpeggiator/effect guides.
 - Fixed browser keyboard with a collapsible tray, sustain, velocity and track routing; live oscilloscope.
 - SMK simulator with 37 keys, 16 pads, 8 knobs, 4 faders, pitch/mod wheels, sustain, native LCD, Pro/Elite finish swatches, compact/expanded view, fullscreen and replayable tutorial.
@@ -54,7 +56,7 @@ Native FM-1 key-layer shortcuts occupy the inner F3–G5 range; the full 37-key 
 
 ## Build and tests
 
-Source baseline: keremimo/melodee commit **01a78bd** (1.1.0). Branch: **port/smk37-initial**.
+Source baseline: keremimo/melodee commit **01a78bd** (1.1.0). Integration branch: **feat/smk-hardware-beta**.
 
 Generate native fonts/DSP tables with the upstream tools. Pillow must include Raqm; fonttools is also required. Zig 0.13.0 is the tested browser compiler:
 
@@ -71,7 +73,7 @@ For the hardware development image, use the upstream Linux JieLi toolchain (nati
 JIELI_DOCKER=0 python tools/build_melodee_smk.py
 ```
 
-Output is under build/melodee-smk-1.1.0-dev1/. The candidate binary embeds an 8,160-byte RAM-only updater and advertises SMK-37_940. The manifest records memory bounds, SHA-256, disabled subsystems and hardware-test status. Stage it for the website with `python tools/stage_melodee_smk.py`; do not feed the raw .bin to a vendor updater. The website packages it with a hash-checked official Pro/Elite 016 base entirely in the browser.
+Output is under build/melodee-smk-1.1.0-b1/. The candidate binary embeds an 8,160-byte RAM-only updater and advertises SMK-37_941. The manifest records memory bounds, SHA-256, capabilities, storage-audit hash and hardware-test status. Stage it for the website with `python tools/stage_melodee_smk.py`; do not feed the raw .bin to a vendor updater. The website packages it with a hash-checked official Pro/Elite 016 base entirely in the browser.
 
 Automated runtime coverage: all five main engines produce audio; editor INFO, DUMP and all parameter descriptors; all 37 keys and 16 pad feedback bits; sustain/release; fresh-runtime restoration of projects A–D, all 32 patterns, native preset banks, general presets, favorites, settings and song chains; corrupt snapshot rejection without changing current music; read-only polling does not postpone autosave. Desktop/mobile browser checks cover pages, native editor connection and control rendering.
 
@@ -79,16 +81,16 @@ Automated runtime coverage: all five main engines produce audio; editor INFO, DU
 
 The local page automatically fetches the staged GPL application and an immutable mirror of the official model-specific 016 package. Both complete stock SHA-256 and application SHA-256/size are checked. A local official .fwsc file is an optional fallback; files are not uploaded. Model changes discard the prepared candidate and reset confirmation.
 
-Select either an existing portable SMK updater (identity 922 or newer) or exact stock Pro/Elite 016. No START is sent to an FM-1, wrong stock model/version, or older private updater. The stock route requires the exact expected official OTA identity after handoff; the unresolved Elite handoff is not worked around by loosening identity checks.
+Automatic install/resume detects a portable SMK updater (identity 922 or newer), exact stock Pro/Elite 016, or its active loader. Wrong stock models/versions and older private updaters are refused. An ambiguous Elite loader requires explicit device confirmation; it is never automatically treated as an SMK.
 
 The embedded RAM loader validates JEDEC ID, supported boot-region checksum and the unit's calibration structure. It preflights the complete payload before erasing, rechecks each fetched sector, programs changed sectors only, reads them back, and checks the protected boot/calibration regions afterward. Writes are constrained to 0x4000–0x9d000 (end exclusive). This does not guarantee recovery from lost power while the application is being written.
 
-**Before a physical test:** export important music from the installed firmware. This candidate has hardware saves/sample upload, TRS, USB audio and Bluetooth disabled. Retaining bytes outside the application region does not make another firmware's saves compatible with Melodee.
+**Before a physical test:** export important music from the installed firmware. b1 integrates guarded device saves, TRS output and 44.1 kHz USB audio. Sample upload and Bluetooth remain unavailable. First-time storage initialization is separate, requires a verified backup, and replaces old saved music/sample data in its designated regions. Retaining bytes outside the application region does not make another firmware's saves compatible with Melodee.
 
 Offline verification (no MIDI device opened):
 
 ```sh
-node web/installer/test_smk37_public.mjs /private/pro-016.fwsc /private/elite-016.fwsc build/melodee-smk-1.1.0-dev1/manifest.json
+node web/installer/test_smk37_public.mjs /private/pro-016.fwsc /private/elite-016.fwsc build/melodee-smk-1.1.0-b1/manifest.json
 cc -std=c11 -O2 -Ifirmware/hal -DTEST_PUBLIC tests/smk37_update_test.c -o build/smk37-update-test
 build/smk37-update-test
 build/smk37-update-test build/public-tests/pro-synthetic-flash.bin build/public-tests/pro.smkupdate
@@ -97,15 +99,11 @@ build/smk37-update-test build/public-tests/elite-synthetic-flash.bin build/publi
 
 Verified: both stock container/CRC round trips, protected bytes unchanged, corrupt files rejected; exact stock and custom-updater selection, missing loader, programming failure, wrong returned identity and cleanup; simulated flash preflight, changed host data, interruption/retry, no-op and calibration preservation across synthetic units. The real Melodee candidate passes the RAM-loader test for both model packages. Browser checks verify automatic preparation and checkbox gating without pressing Install.
 
-## Hardware work still required
+## Hardware integration status
 
-- Verify interrupt/audio/scanner timing and the linker memory layout on an SMK.
-- Implement SMK storage geometry, backup review, calibration preservation and power-loss-safe persistence.
-- Physically verify the integrated USB updater and both stock-loader handoffs; Elite 016 has an unresolved handoff report.
-- Integrate USB audio, physical TRS routing and clock/transport; Bluetooth is separate.
-- Validate native hold/layer shortcuts, screen sleep, LED brightness and alternate controls on hardware.
+The b1 source adds SMK-specific transactional storage, backup-gated initialization, TRS MIDI output for notes/expression and internal clock/Start/Stop, native 44.1 kHz USB audio, pad brightness and LCD sleep/wake. These features have host tests but still need the [device validation checklist](docs/SMK_BETA_TEST.md). The local installer serves b1 for those device checks; the public release is unchanged.
 
-The first target uses one core, no cache RAM and no application storage writes. It excludes FM-1 input/audio/ADC initialization and the FM-1 OTA staging implementation. Flash erase/program code runs only in the explicit SMK RAM update session. No private device backups or vendor binaries are included.
+The target remains single-core with cache RAM disabled. FM-1 input/audio/ADC initialization and OTA staging remain excluded. Bluetooth, user sample upload, TRS Continue/external-clock forwarding and broader long-run hardware validation remain separate work. Private device backups and vendor binaries are not included.
 
 ## Provenance
 

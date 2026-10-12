@@ -3,7 +3,7 @@
 (() => {
   const root = document.documentElement;
   const I18N = window.MelodeeI18n;
-  const themes = [['melodee', 'MELODEE Original'], ['stage', 'Stage Red'], ['matrix', 'Matrix'], ['dx', 'Vintage DX7'], ['modeld', 'Model D Walnut'],
+  const themes = [['melodee', 'Melodee Atelier'], ['stage', 'Stage Red'], ['matrix', 'Matrix'], ['dx', 'Vintage DX7'], ['modeld', 'Model D Walnut'],
     ['chocolate', 'Chocolate Factory'], ['vapor', 'Vaporwave'], ['midnight', 'Midnight Studio'],
     ['space', 'Space Mission'], ['bauhaus', 'Bauhaus'], ['ocean', 'Ocean Lab'], ['arcade', 'Arcade \u201984'], ['hicon', 'High Contrast']];
   const read = (key, fallback) => { try { return localStorage.getItem(key) || fallback; } catch { return fallback; } };

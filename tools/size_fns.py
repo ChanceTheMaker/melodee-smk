@@ -15,7 +15,8 @@ from pathlib import Path
 _ROOT = Path(__file__).resolve().parents[1]
 SRC = _ROOT / "firmware" / "src" if (_ROOT / "firmware" / "src").is_dir() else _ROOT / "src"   # either layout
 # the UI, the stores, the editor and the console: main loop only, never called by sound code
-SIZE_FILES = ["ui.c", "favorites.c", "icons.c", "ui_graph.c", "ui_draw.c", "ui_menu.c", "ui_input.c",
+SIZE_FILES = ["gfx.c", "panel.c", "browse.c", "melodee_smk_store.c", "melodee_smk_storage_service.c",
+              "ui.c", "favorites.c", "icons.c", "ui_graph.c", "ui_draw.c", "ui_menu.c", "ui_input.c",
               "ui_browser.c", "ui_designer.c", "ui_designer_input.c", "ui_layer.c", "ui_list.c", "ui_motion.c", "ui_name.c",
               "ui_new.c", "ui_pages.c", "ui_patterns.c", "ui_popup.c", "ui_scales.c", "ui_sections.c", "ui_slots.c", "ui_stage.c",
               "storage.c", "upreset.c", "project.c", "settings_persist.c",

@@ -1,0 +1,3 @@
+import assert from 'node:assert/strict';import {crc32,u32,read32,unpack} from './storage-codec.js';
+assert.equal(crc32(new TextEncoder().encode('123456789')),0xcbf43926);for(const n of [0,127,128,393216,0xffffffff])assert.equal(read32(u32(n)),n);
+const data=Uint8Array.from({length:256},(_,i)=>i),packed=[];for(let i=0;i<data.length;i+=7){const k=Math.min(7,data.length-i);let m=0;for(let j=0;j<k;j++)m|=(data[i+j]>>>7)<<j;packed.push(m);for(let j=0;j<k;j++)packed.push(data[i+j]&127);}assert.deepEqual(unpack(packed,256),data);assert.throws(()=>unpack([127,1],1));assert.throws(()=>unpack(packed,255));console.log('Storage backup codec tests passed');

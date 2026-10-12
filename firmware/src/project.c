@@ -1492,17 +1492,21 @@ static uint32_t persist_retry_ms;
 
 static void persist_boot(void)                    /* before settings_init / panel_init */
 {
-#if defined(MELODEE_SMK_HARDWARE)
-    flash_ok = 0; /* No SMK persistent storage backend in the first candidate. */
-#elif MELODEE_FLASH
+#if MELODEE_FLASH
     persist_t p;
+    #ifdef MELODEE_SMK_HARDWARE
+    flash_ok = melodee_storage_probe();
+    #else
     uint32_t f = irq_save();
     flash_ok = FL_FAR(fl_jedec_ram)() == 0x856014u;       /* the expected 1 MiB part, else stay RAM-only */
     irq_restore(f);
+    #endif
     if (!flash_ok)
         return;
+    #ifndef MELODEE_SMK_HARDWARE
     fl_plain_window_init();                        /* flash above 0x93000 reads as plaintext through XIP
                                                     * (user sample sets are played from there) */
+#endif
 #if MELODEE_SLICE
     slc_store_boot();                              /* (the scans read each slot's stored slices) */
 #endif

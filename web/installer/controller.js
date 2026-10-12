@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-import {buildSmkPublicPackage} from './smk37-package.js';
+import {buildSmkPublicPackage} from './smk37-package.js?v=melodee-b1';
 import {parsePackage,installSmk,installStockSmk} from './smk37-update.js?v=smk-flow-r1';
 import {STOCK_SOURCES} from './smk37-stock.js';
 const $=id=>document.getElementById(id);
@@ -19,7 +19,7 @@ const support=window.isSecureContext&&typeof navigator.requestMIDIAccess==='func
 const log=text=>{const line=new Date().toISOString()+' '+text;console.log(line);$('log').textContent+= '\n'+line;$('log').scrollTop=$('log').scrollHeight;};
 function status(text,error=false){$('status').textContent=text;$('status').dataset.error=String(error);}
 function controls(){
-  $('install').disabled=!support||!prepared||!$('confirm').checked||preparing||installing;
+  $('install-button').disabled=!support||!prepared||!$('confirm').checked||preparing||installing;
   for(const id of ['model','route','stock-file','prepare'])$(id).disabled=installing;
   $('prepare').disabled=installing||preparing;
   $('confirm').disabled=installing;
@@ -29,7 +29,7 @@ async function prepare(){
   const request=++generation,model=$('model').value,file=$('stock-file').files[0];prepared=null;preparing=true;$('confirm').checked=false;controls();status('Preparing Melodee for '+model+'… No device access.');
   try{
     const m=await (await fetchChecked('firmware/candidate.json')).json();
-    if(m.release_channel!=='local-development'||!m.installable||!m.updater||m.hardware_tested!==false||m.update_product!=='SMK-37_940'||m.update_version!=='MELODEE SMK 1.1.0-dev1'||!/^[a-z0-9.-]+-candidate\.bin$/.test(m.image))throw Error('The staged manifest is not this reviewed Melodee development candidate.');
+    if(m.release_channel!=='local-development'||!m.installable||!m.updater||m.hardware_tested!==false||m.update_product!=='SMK-37_941'||m.update_version!=='MELODEE SMK 1.1.0-b1'||m.storage_initialization!=='backup-required'||!m.persistent_storage||!/^[a-z0-9.-]+-candidate\.bin$/.test(m.image))throw Error('The staged manifest is not this reviewed Melodee development candidate.');
     const app=new Uint8Array(await (await fetchChecked('firmware/'+m.image)).arrayBuffer());
     const stock=new Uint8Array(await (file?file.arrayBuffer():fetchChecked(STOCK_SOURCES[model]).then(r=>r.arrayBuffer())));
     const pkg=await buildSmkPublicPackage(stock,app,{localCandidate:true,product:m.update_product,version:m.update_version,bytes:m.bytes,sha256:m.sha256});
@@ -44,8 +44,8 @@ async function prepare(){
 }
 $('model').addEventListener('change',prepare);$('stock-file').addEventListener('change',prepare);$('prepare').addEventListener('click',prepare);$('confirm').addEventListener('change',controls);
 $('route').addEventListener('change',()=>{$('confirm').checked=false;$('route-note').textContent=$('route').value==='stock'?'Automatically detects stock firmware, an active loader, or Felucca / Sloop / Melodee SMK.':'Requires the portable SMK updater (identity 922 or newer). Older private builds are refused before starting an update.';controls();});
-$('install').addEventListener('click',async()=>{
-  if($('install').disabled||!prepared)return;
+$('install-button').addEventListener('click',async()=>{
+  if($('install-button').disabled||!prepared)return;
   const pkg=prepared,route=$('route').value;installing=true;controls();
   try{
     await parsePackage(pkg.bytes,pkg.sha);
@@ -53,7 +53,7 @@ $('install').addEventListener('click',async()=>{
     const access=await navigator.requestMIDIAccess({sysex:true});
     log('Starting explicit '+route+' installation.');
     await (route==='stock'?installStockSmk:installSmk)(access,pkg,text=>{status(text);log(text);},{confirmGeneric});
-    status('Installed '+manifest.firmware+'. Check the screen, keys and sound on the SMK. Device saves remain disabled.');
+    status('Installed '+manifest.firmware+'. Check the screen, keys and sound on the SMK. For first-time device saves, use the linked storage backup/setup page, then restart.');
     $('confirm').checked=false;
   }catch(e){status(e.message,true);log('Installation stopped: '+e.message);$('confirm').checked=false;}
   finally{installing=false;controls();}

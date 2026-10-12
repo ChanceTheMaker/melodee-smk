@@ -395,6 +395,7 @@ static void ed_handle(const uint8_t *f, uint32_t n)   /* f: the bytes between F0
         }
 #endif
         if (count == 47u) {
+#ifndef MELODEE_SMK_HARDWARE
             snapshot[32] = fm1_cache.status;
             snapshot[33] = fm1_cache.con_before;
             snapshot[34] = fm1_cache.data_before;
@@ -404,6 +405,7 @@ static void ed_handle(const uint8_t *f, uint32_t n)   /* f: the bytes between F0
             snapshot[38] = fm1_cache.instruction_after;
             snapshot[39] = fm1_cache.failure_address;
             snapshot[40] = fm1_cache.test_ticks / FM1_TICKS_PER_US;
+#endif
             snapshot[41] = RESOURCE_CAPACITY;
             snapshot[42] = resource_used();
             snapshot[43] = resource_peak;

@@ -18,6 +18,6 @@ def main():
  env=os.environ.copy();env.setdefault('ZIG_GLOBAL_CACHE_DIR',str(ROOT/'build/zig-cache'))
  cmd=[a.zig,'cc','-target','wasm32-freestanding','-O2','-fno-builtin','-fwrapv','-nostdlib','-Wl,--no-entry','-Wl,-z,stack-size=0x80000','-Wl,--initial-memory=0x1000000','-Wl,--max-memory=0x1000000',*[f'-Wl,--export={x}' for x in EXPORTS],'-Iweb/audio/include','-Ibuild/gen','-Ifirmware/hal','web/audio/melodee-smk-engine.c','-o',str(out)]
  subprocess.run(cmd,check=True,env=env)
- raw=out.read_bytes();meta={'version':'1.1.0-dev1','engine':'Melodee SMK','sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)}
+ raw=out.read_bytes();meta={'version':'1.1.0-b1','engine':'Melodee SMK','sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)}
  out.with_name('smk-build.json').write_text(json.dumps(meta,indent=2)+'\n');print(json.dumps(meta))
 if __name__=='__main__':main()
