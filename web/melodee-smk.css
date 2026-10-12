@@ -16,3 +16,61 @@ button,a.action{touch-action:manipulation}.mode-switch{display:flex;gap:3px;bord
 #groups .studio-section>.section-grid{grid-column:1/-1}#groups .section-bank>.studio-widget{grid-column:1/-1}#groups .section-bank:has(.scalepicker){grid-column:1/-1}#groups .studio-section>.modrow{display:grid!important;margin-top:10px}@media(max-width:600px){.section-grid{grid-template-columns:1fr!important}}
 
 .landing-page main{box-sizing:border-box}.hero-instrument{padding:14px;box-sizing:border-box}
+
+/* Melodee Atelier: the app's sage, periwinkle and lilac on an ink-blue instrument.
+   Scoped to Melodee; other selectable skins keep their own materials. */
+:root[data-skin=melodee] {
+ --bg:#111923; --fg:#eef3ed; --dim:#b0bec7; --line:#3d4e5d;
+ --desk:#080e15; --chassis:#263a43; --chassis-dark:#131e2c;
+ --panel:#1b2834; --button:#2b3c4b; --edge:#253c42;
+ --accent:#b5eba4; --ink:#122719; --lcd:#d9eecf; --lcd-bg:#0b151c;
+ --badge-fg:#edf5e9; --shell-text:#edf5e9; --piano-active:#87bc87;
+ --mel-blue:#acbdf5; --mel-lilac:#d7b9ea; --mel-sage:#b5eba4;
+ --mel-shadow:#03080e66; --card-radius:14px;
+ --knob-top:#536c75; --knob-bottom:#182a35;
+ --metal:conic-gradient(from 25deg,#a5bbbf,#425c66 22%,#c1d0d0 42%,#698089 60%,#bacbd0 82%,#a5bbbf);
+ --faceplate:radial-gradient(ellipse at 82% 0,#9db0ea18,transparent 65%),linear-gradient(110deg,#293e45,#182638 75%);
+}
+:root[data-skin=melodee][data-mode=light] {
+ color-scheme:light; --bg:#eef2eb; --fg:#192e36; --dim:#49606a; --line:#9eafb1;
+ --desk:#d9e2da; --chassis:#dce8dc; --chassis-dark:#bfcfc9;
+ --panel:#e2eae3; --button:#ceddd3; --edge:#bdcfc6;
+ --accent:#305d37; --ink:#f6fff1; --lcd:#254535; --lcd-bg:#f7faf2;
+ --badge-fg:#193539; --shell-text:#193539; --piano-active:#467d51;
+ --mel-blue:#3f568b; --mel-lilac:#79528c; --mel-sage:#305d37; --mel-shadow:#28443820;
+ --faceplate:radial-gradient(ellipse at 80% 0,#b4bfea40,transparent 65%),linear-gradient(110deg,#e1ebdb,#cfdedb);
+}
+[data-skin=melodee] body { background:radial-gradient(ellipse at 15% 0,color-mix(in srgb,var(--mel-sage) 8%,var(--desk)),var(--desk) 65%); }
+[data-skin=melodee] main { border:1px solid var(--line); border-radius:24px; box-shadow:0 22px 70px var(--mel-shadow); }
+[data-skin=melodee] .masthead { border:0; border-bottom:1px solid var(--line); border-image:none; border-radius:23px 23px 4px 4px; box-shadow:inset 0 1px #ffffff14; }
+[data-skin=melodee] .masthead::before,[data-skin=melodee] .masthead::after { display:none; }
+[data-skin=melodee] .melodee-wordmark { color:var(--badge-fg); font-family:'Sora',system-ui,sans-serif!important; letter-spacing:-.07em!important; text-shadow:none; }
+[data-skin=melodee] .melodee-wordmark span { color:var(--mel-lilac); font-family:var(--ui-font); font-weight:600; letter-spacing:.08em; }
+[data-skin=melodee] .masthead .tagline { color:var(--mel-sage); letter-spacing:.14em; }
+[data-skin=melodee] .hero-copy h2 { font-family:'Sora',system-ui,sans-serif!important; font-weight:700; letter-spacing:-.065em; }
+[data-skin=melodee] .release-badge { color:var(--mel-sage); border-color:color-mix(in srgb,var(--mel-sage) 35%,var(--line)); border-radius:99px; }
+[data-skin=melodee] .top,[data-skin=melodee] .panel { border:1px solid var(--line); border-radius:14px; box-shadow:0 4px 14px var(--mel-shadow); }
+[data-skin=melodee] .tabs button { border-radius:8px; border:1px solid transparent; box-shadow:none; background:transparent; color:var(--dim); }
+[data-skin=melodee] .tabs button[aria-selected=true] { background:var(--accent); color:var(--ink); border-color:var(--accent); box-shadow:none; }
+[data-skin=melodee] .groups .group { --section-accent:var(--mel-sage); border:1px solid var(--line); border-top:3px solid var(--section-accent); background:linear-gradient(130deg,#ffffff05,transparent 65%),var(--panel); box-shadow:0 5px 16px var(--mel-shadow),inset 0 1px #ffffff0d; }
+[data-skin=melodee] .groups .group:nth-child(3n+2) { --section-accent:var(--mel-blue); }
+[data-skin=melodee] .groups .group:nth-child(3n) { --section-accent:var(--mel-lilac); }
+[data-skin=melodee] .control-bank h2 { color:var(--section-accent); letter-spacing:.08em; }
+[data-skin=melodee] [data-controls=knobs] .dial-control { color:var(--section-accent); }
+[data-skin=melodee] [data-controls=knobs] .dial-face { border-color:#162730; box-shadow:0 3px 6px #0007,0 0 0 2px var(--line),inset 0 1px #d4e3df66; }
+[data-skin=melodee] [data-controls=knobs] .dial-face::after { background:var(--section-accent,var(--accent)); }
+[data-skin=melodee] .studio-widget { border-radius:9px; color:var(--lcd); }
+[data-skin=melodee] .browser { border:1px solid var(--line); border-radius:12px; background:var(--lcd-bg); box-shadow:inset 0 2px 7px var(--mel-shadow); }
+[data-skin=melodee] .editor-page .play-keyboard { border:1px solid var(--line); border-top:3px solid var(--mel-sage); background:var(--faceplate); box-shadow:0 -8px 30px var(--mel-shadow); }
+[data-skin=melodee] .feature-card,[data-skin=melodee] .theme-gallery figure { border-radius:14px; }
+[data-skin=melodee] .feature-card:nth-child(2) .feature-number { color:var(--mel-blue); }
+[data-skin=melodee] .feature-card:nth-child(3) .feature-number { color:var(--mel-lilac); }
+[data-skin=melodee] .sim-toolbar { padding:10px 12px; background:var(--panel); border:1px solid var(--line); border-radius:12px; }
+[data-skin=melodee] .smk-simulator-shell .sim-pad:is(.lit,[aria-pressed=true]) { background:linear-gradient(#ccf2b8,#87bd8a); border-color:#d7f6c9; color:#172d22; box-shadow:0 0 12px #b5eba440,inset 0 1px #fff6; }
+[data-skin=melodee] .smk-simulator-shell .sim-key[aria-pressed=true] { background:linear-gradient(#79a682,#c0e5b5); }
+[data-skin=melodee] .smk-simulator-shell .sim-button.lit { border-bottom-color:#b5eba4; color:#d8f5ca; }
+[data-skin=melodee][data-mode=light] .studio-preview-action { color:var(--ink); }
+@media(max-width:600px) { [data-skin=melodee] main { border-radius:14px; } [data-skin=melodee] .masthead { border-radius:13px 13px 3px 3px; } }
+
+:root[data-skin=melodee] .install-primary{background:linear-gradient(130deg,color-mix(in srgb,var(--accent) 90%,white),var(--accent));color:var(--ink);border-color:var(--accent);box-shadow:0 6px 20px var(--mel-shadow)}
+[data-skin=melodee] #status:not([data-error=true]){border-left-color:var(--accent)}

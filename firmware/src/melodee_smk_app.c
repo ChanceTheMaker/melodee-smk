@@ -2,7 +2,8 @@
 /* Melodee SMK target. Native UI/DSP, SMK peripherals and optional guarded storage. */
 #include <stdint.h>
 #define MELODEE_SMK_HARDWARE 1
-#define FELUCCA_FLASH 0
+#define FELUCCA_FLASH 1
+#define SMK37_ENABLE_TRS 1
 #define FELUCCA_UAC 1 /* dedicated SMK USB timer, MIDI only for first target */
 #include "smk37_unit.h"
 #include "smk37_loader_image.h"
@@ -35,6 +36,8 @@ static void lcd_sync(void);
 static void lcd_blit(uint32_t,uint32_t,uint32_t,uint32_t,const uint16_t*);
 static void lcd_fill(uint32_t,uint32_t,uint32_t,uint32_t,uint16_t);
 #include "melodee_smk_runtime.c"
+#include "smk37_midi_output.c"
+#include "melodee_smk_storage_service.c"
 /* TIMER5 owns USB polling; never enter the SIE again from the editor loop. */
 static uint32_t ota_now_ms(void){return fm1_ticks()/24000u;}
 static void ota_idle(void){fm1_wdt_feed();}
@@ -45,8 +48,9 @@ static void melodee_usb_service(void){
         ota_frame_done();ota_wire_send(smk37_update_identity_wire,sizeof smk37_update_identity_wire);return;
     }
 #if FELUCCA_FLASH
-    if(ota_frame_get(&p,&n) && (sloop_storage_reset(p,n)||sloop_storage_diag(p,n))){ota_frame_done();return;}
+    if(ota_frame_get(&p,&n) && melodee_storage_service(p,n)){ota_frame_done();return;}
 #endif
+    if(ms_setup_locked){if(ota_frame_get(&p,&n))ota_frame_done();return;}
     ed_service();
     /* Unknown vendor frames must not wedge the one-frame receive queue. */
     if(ota_frame_get(&p,&n))ota_frame_done();
@@ -56,7 +60,7 @@ volatile smk37_bootguard_t smk37_boot_state __attribute__((section(".noinit")));
 
 static int32_t smk37_dma[HALF_FRAMES * 4u] __attribute__((aligned(4),section(".pool")));
 #if FELUCCA_FLASH
-static void sloop_storage_silence(void){memset(smk37_dma,0,sizeof smk37_dma);}
+static void audio_silence(void){memset(smk37_dma,0,sizeof smk37_dma);}
 #endif
 static volatile uint32_t smk37_rendered, smk37_late, smk37_scan_frames;
 static volatile uint32_t smk37_audio_irqs;
@@ -173,15 +177,16 @@ static void lcd_blit(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const uint1
 #undef lcd_fill
 static void lcd_fill(uint32_t x,uint32_t y,uint32_t w,uint32_t h,uint16_t c){uint16_t row[240];if(w>240||x+w>240||y+h>240)return;for(unsigned i=0;i<w;i++)row[i]=swap16(c);for(unsigned i=0;i<h;i++)lcd_blit(x,y+i,w,1,row);}
 static uint8_t smk37_light_buffer[SMK37_LIGHT_BYTES] __attribute__((aligned(4)));
+static void smk_lcd_power(unsigned state){if(smk37_display_ok)smk37_lcd_command(state==1?0x29:0x28,4000000u);}
 static void smk37_light_service(void){
     static uint32_t previous=UINT32_MAX;
     static uint8_t failed;
     if(failed)return;
-    static const uint8_t brightness[4]={0,2,4,8};
+    static const uint8_t brightness[LIGHTS_N]={0,1,2,4,8};
     fm1_irq_off();
     smk37_scan_indicator_bits=melodee_smk_status()[0];
     uint16_t pads=smk37_pad_feedback_mask(&smk_pad_feedback,fm1_ms);
-    unsigned level=brightness[2],color=2;
+    unsigned level=brightness[settings_lights%LIGHTS_N],color=2;
 
     fm1_irq_on();
     /* Always show a physical hit when lights are enabled. Do not translate
@@ -193,14 +198,24 @@ static void smk37_light_service(void){
     else {failed=1;smk37_scan_indicator_bits=0;}
 }
 
+/* Internal-clock transport at 24 PPQN; sent only to the physical output. */
+static void smk37_clock_output(unsigned frames){
+ static uint32_t phase;static uint8_t playing;
+ unsigned active=smk37_trs_enabled&&song.g[G_CLOCK]==0&&song.playing;
+ if(active!=playing){smk37_trs_output(15u|((active?0xfau:0xfcu)<<8));phase=0;playing=active;}
+ if(!active)return;phase+=frames*(unsigned)clamp(song.g[G_BPM],20,300)*24u;
+ while(phase>=FS*60u){phase-=FS*60u;smk37_trs_output(15u|(0xf8u<<8));}
+}
 void smk37_audio_irq(void)
 {
     ++smk37_audio_irqs;
     uint8_t pending = smk37_audio_pending();
     smk37_audio_ack_aux(pending);
     if (pending & SMK37_AUDIO_HALF) {
+        uint32_t begin=fm1_ticks();
         unsigned half = smk37_audio_free_half(), b, i;
         int32_t *out = smk37_dma + half * HALF_FRAMES * 2u;
+        if(ms_setup_locked){memset(out,0,HALF_FRAMES*2u*sizeof *out);smk37_audio_ack_half();++smk37_rendered;return;}
         smk37_consume_keys();
 
 #if FELUCCA_UAC
@@ -208,6 +223,13 @@ void smk37_audio_irq(void)
 #endif
         for (b = 0; b < HALF_FRAMES; b += CTL) {
             mix_block(out + b * 2u, CTL);
+#if MELODEE_USB_AUDIO
+            fm1_irq_off();
+            if(usb.up&&usb.config&&!usb.suspended)ua_audio(out+b*2u,track_capture_on?track_capture:0,CTL,song.master_q12);
+            fm1_irq_on();
+#endif
+            click_render(out+b*2u,CTL);
+            smk37_clock_output(CTL);
 #if FELUCCA_UAC
 
 #endif
@@ -218,7 +240,10 @@ void smk37_audio_irq(void)
         for (i = 0; i < HALF_FRAMES * 2u; ++i) out[i] *= 128;
         smk37_audio_ack_half();
         ++smk37_rendered;
-        if (smk37_audio_free_half() != half) ++smk37_late;
+        if (smk37_audio_free_half() != half) {++smk37_late;++melodee_dbg.late;}
+        unsigned us=(fm1_ticks()-begin)/24u;
+        if(us>melodee_dbg.max_us)melodee_dbg.max_us=us;
+        song.cpu_q8=(song.cpu_q8*31u+us*256u/(HALF_FRAMES*1000000u/FS))/32u;
     }
 }
 /* UAC needs one packet each millisecond even while the LCD transfers.
@@ -315,6 +340,7 @@ void smk37_cstart(const uint32_t *boot_parameters)
     /* Playable startup. Diagnostics remain reachable with the page encoder. */
 
     smk37_boot_state.stage = SMK37_BOOT_USB;
+    persist_boot();panel_init();settings_init();palette_set(settings.palette);
     usb_start();
     smk37_boot_state.stage = SMK37_BOOT_DISPLAY;
     smk37_lcd_hw_init(4);
@@ -342,7 +368,7 @@ void smk37_cstart(const uint32_t *boot_parameters)
     smk37_boot_state.stage = SMK37_BOOT_RUNNING;
 #if FELUCCA_FLASH
     /* Probe/read only after interrupts are initialized. No erase or format on boot. */
-    persist_boot();panel_init();settings_init();palette_set(settings.palette);autosave_resume();
+    glo_restore();project_boot();
 #endif
     for (;;) {
         uint32_t now = fm1_ticks();
@@ -354,6 +380,9 @@ void smk37_cstart(const uint32_t *boot_parameters)
         usb_poll();
 #endif
         usb_retry(fm1_ms);
+#if MELODEE_USB_AUDIO
+        if(!ms_setup_locked&&ua_off_apply(fm1_ms))settings_save();
+#endif
         melodee_usb_service();
 #if SMK37_ENABLE_USB_UPDATE
         if(usb.ota_req){usb.ota_req=0;smk37_enter_usb_update();}

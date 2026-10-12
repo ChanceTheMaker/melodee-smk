@@ -2,15 +2,26 @@
 /* Melodee 1.1 musical/UI core with the independently measured SMK panel. */
 #include <stdint.h>
 #define MELODEE_SMK 1
+static uint8_t smk37_trs_enabled;
 #define MELODEE_DUAL_CORE 0
 #define MELODEE_CACHE_RAM 0
 #define MELODEE_CORE1_TEST 0
 #define MELODEE_UART 0
 #define MELODEE_CDC 0
+#ifdef MELODEE_SMK_HARDWARE
+#define MELODEE_USB_AUDIO 1
+/* Set atomically before provisioning; only a reboot permits playing again. */
+static volatile uint8_t ms_setup_locked;
+
+static uint32_t smk37_trs_bytes;
+static void smk37_trs_output(uint32_t);
+#define MIDI_OUTPUT_HOOK(p) smk37_trs_output(p)
+#else
 #define MELODEE_USB_AUDIO 0
+#endif
 #define MELODEE_OTA 1
 #ifdef MELODEE_SMK_HARDWARE
-#define MELODEE_FLASH 1 /* native bounded caches; backing store deliberately refuses writes */
+#define MELODEE_FLASH 1 /* native caches backed by the SMK transactional store */
 #else
 #define MELODEE_FLASH 0
 static volatile uint32_t fm1_ms;
@@ -21,9 +32,9 @@ static void fm1_wdt_feed(void){}
 static void fm1_delay_ms(uint32_t ms){fm1_ms+=ms;}
 #endif
 #ifndef MELODEE_VERSION
-#define MELODEE_VERSION "SMK 1.1.0-dev1"
+#define MELODEE_VERSION "SMK 1.1.0-b1"
 #endif
-#define MELODEE_ID "SMK-37_940"
+#define MELODEE_ID "SMK-37_941"
 #define FM1_TICKS_PER_US 24u
 #include "melodee_tables.h"
 #include "libc.c"
@@ -56,9 +67,16 @@ static const int8_t FM1_KEYMAP[5][16]={
 static uint8_t fm1_led[16],fm1_led_dim[3][16],fm1_led_dim_mask[3];
 #define SCOPE_N 512u
 static int16_t scope_buf[SCOPE_N];static uint32_t scope_w;
-static struct {uint32_t stage;} melodee_dbg;
+static struct {uint32_t stage,late,max_us;} melodee_dbg;
+static uint32_t shed_count;
+#ifdef MELODEE_SMK_HARDWARE
+static void smk_lcd_power(unsigned);
+#define UI_LCD_POWER(s) smk_lcd_power(s)
+#define UI_LCD_WAKE() smk_lcd_power(1)
+#else
 #define UI_LCD_POWER(s) ((void)(s))
 #define UI_LCD_WAKE() ((void)0)
+#endif
 #include "gfx.c"
 #include "panel.c"
 #include "ui.c"
@@ -68,6 +86,9 @@ static struct {uint32_t stage;} melodee_dbg;
 #include "ui_menu.c"
 #include "ui_input.c"
 #include "ui_layer.c"
+#ifdef MELODEE_SMK_HARDWARE
+#include "melodee_smk_storage_hw.c"
+#else
 /* No FM-1 flash geometry, erase/program driver, or calibration writer is linked. */
 static uint32_t flash_ok;
 #ifdef MELODEE_SMK_HARDWARE
@@ -83,6 +104,7 @@ static int fl_write(uint32_t off,const void*p,uint32_t n){(void)off;(void)p;(voi
 static void fl_inval(uint32_t off,uint32_t n){(void)off;(void)n;}
 static void audio_silence(void){}
 #include "storage.c"
+#endif
 #include "upreset.c"
 #include "project.c"
 #include "cz_store.c"
@@ -135,9 +157,14 @@ static void melodee_smk_event(unsigned kind,unsigned id,int value){
  if(kind==2&&id<37){if(value)smk_keys|=(uint64_t)1<<id;else smk_keys&=~((uint64_t)1<<id);melodee_smk_note(id,clamp(value,0,127));}
  if(kind==3&&id<16){smk37_pad_feedback_event(&smk_pad_feedback,id,value,fm1_ms);if(value)smk_pads|=1u<<id;else smk_pads&=~(1u<<id);melodee_smk_note(37+id,clamp(value,0,127));}
  if(kind==4&&id<4){track_t*t=smk_fader_bank?TSEL:&trk[id];unsigned p=smk_fader_bank?P_ATK+id:P_LEVEL;t->p[p]=clamp(value,0,1023)*127/1023;ui.force=1;}
- if(kind==5){for(unsigned t=0;t<NTRK;t++){unsigned ch=trk_midi_ch(t);if(!id){unsigned bend=clamp(value+8192,0,16383);melodee_smk_midi(0xe0|ch,bend&127,bend>>7);}else melodee_smk_midi(0xb0|ch,1,clamp(value,0,127));}}
- if(kind==6){smk_sustain=!!value;if(!smk_sustain)for(unsigned i=0;i<53;i++)if(smk_deferred[i])smk_note_release(i);for(unsigned t=0;t<NTRK;t++)melodee_smk_midi(0xb0|trk_midi_ch(t),64,value?127:0);}
+ if(kind==5){for(unsigned t=0;t<NTRK;t++){unsigned ch=trk_midi_ch(t);if(!id){unsigned bend=clamp(value+8192,0,16383);melodee_smk_midi(0xe0|ch,bend&127,bend>>7);if(ch<16)midi_out_event(14u|((0xe0u|ch)<<8)|((bend&127u)<<16)|((bend>>7)<<24));}else {unsigned mod=clamp(value,0,127);melodee_smk_midi(0xb0|ch,1,mod);if(ch<16)midi_out_event(11u|((0xb0u|ch)<<8)|(1u<<16)|(mod<<24));}}}
+ if(kind==6){smk_sustain=!!value;if(!smk_sustain)for(unsigned i=0;i<53;i++)if(smk_deferred[i])smk_note_release(i);for(unsigned t=0;t<NTRK;t++){unsigned ch=trk_midi_ch(t);melodee_smk_midi(0xb0|ch,64,value?127:0);if(ch<16)midi_out_event(11u|((0xb0u|ch)<<8)|(64u<<16)|((value?127u:0u)<<24));}}
 }
-static void melodee_smk_release(void){smk_sustain=0;for(unsigned i=0;i<53;i++){melodee_smk_note(i,0);if(smk_deferred[i])smk_note_release(i);}for(unsigned t=0;t<NTRK;t++){melodee_smk_midi(0xb0|trk_midi_ch(t),64,0);melodee_smk_midi(0xe0|trk_midi_ch(t),0,64);}smk_keys=smk_pads=smk_sustain=fm1_in.notes=fm1_in.buttons=smk_edges=smk_notes_seen=0;memset(smk_enc,0,sizeof smk_enc);memset(&smk_pad_feedback,0,sizeof smk_pad_feedback);panic_req=(1u<<NTRK)-1;}
-static void melodee_smk_tick(void){ui_input();ui_leds();ui_draw();}
+static void melodee_smk_release(void){smk_sustain=0;for(unsigned i=0;i<53;i++){melodee_smk_note(i,0);if(smk_deferred[i])smk_note_release(i);}for(unsigned t=0;t<NTRK;t++){melodee_smk_midi(0xb0|trk_midi_ch(t),64,0);melodee_smk_midi(0xe0|trk_midi_ch(t),0,64);unsigned ch=trk_midi_ch(t);if(ch<16){midi_out_event(11u|((0xb0u|ch)<<8)|(64u<<16));midi_out_event(14u|((0xe0u|ch)<<8)|(64u<<24));}}smk_keys=smk_pads=smk_sustain=fm1_in.notes=fm1_in.buttons=smk_edges=smk_notes_seen=0;memset(smk_enc,0,sizeof smk_enc);memset(&smk_pad_feedback,0,sizeof smk_pad_feedback);panic_req=(1u<<NTRK)-1;}
+static void melodee_smk_tick(void){
+#ifdef MELODEE_SMK_HARDWARE
+ if(ms_setup_locked){ui_draw();return;}
+#endif
+ ui_input();ui_leds();ui_draw();settings_poll();
+}
 static uint32_t*melodee_smk_status(void){uint32_t leds=smk_knob_bank|(smk_fader_bank<<1);for(unsigned k=2;k<18;k++){unsigned q=led_pos[panel.btn[(unsigned)smk_buttons[k]]];if(q!=255&&((fm1_led[q>>3]>>(q&7))&1))leds|=1u<<k;}smk_status[0]=leds;smk_status[1]=smk_keys;smk_status[2]=smk_keys>>32;smk_status[3]=smk37_pad_feedback_mask(&smk_pad_feedback,fm1_ms);smk_status[4]=ui.page;smk_status[5]=song.sel;smk_status[6]=song.playing;smk_status[7]=smk_knob_bank;smk_status[8]=smk_fader_bank;smk_status[9]=song.octave+3;smk_status[11]=song.master_q12;for(unsigned i=0;i<4;i++)smk_status[12+i]=(smk_fader_bank?TSEL->p[P_ATK+i]:trk[i].p[P_LEVEL])*1023u/127u;return smk_status;}

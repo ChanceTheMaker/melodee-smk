@@ -66,6 +66,9 @@ static int settings_import(persist_t *p, int n)
 #endif
     p->magic = PERSIST_MAGIC;
     p->palette = palette_to_stored(palette_from_stored(p->palette));
+#ifdef MELODEE_SMK
+    smk37_trs_enabled=p->favorites.factory[15][26]==0xa1u; /* tagged SMK-only setting */
+#endif
     settings_screen=p->favorites.factory[15][27] < 8u ? p->favorites.factory[15][27] : 0u;
     settings_latch=p->favorites.factory[15][30] & 1u;
     settings.magic = SETTINGS_MAGIC;
@@ -119,6 +122,9 @@ static void settings_export(persist_t *p)
 #endif
 #if MELODEE_USB_AUDIO
     p->ext.usb_off = ua_off;
+#endif
+#ifdef MELODEE_SMK
+    p->favorites.factory[15][26]=smk37_trs_enabled?0xa1u:0xa0u;
 #endif
     p->favorites.factory[15][27]=settings_screen;
     p->favorites.factory[15][30]=(p->favorites.factory[15][30]&~1u) | settings_latch;

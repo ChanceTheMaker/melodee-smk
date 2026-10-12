@@ -6,13 +6,21 @@
  * PRESETS scrolls from ABOUT through all credits. ui.menu: 1 list, 2 information. */
 /* ------------------------------------------------------------ menu --- */
 #define MENU_HEAD 24                     /* the menu's own title strip (Stage and the pages: H_HEAD) */
-enum { MI_COLOR, MI_LOWCUT, MI_HOLD, MI_LIGHTS,
+enum {
+#ifdef MELODEE_SMK
+       MI_TRS,
+#endif
+       MI_COLOR, MI_LOWCUT, MI_HOLD, MI_LIGHTS,
 #if MELODEE_USB_AUDIO
        MI_USB,
 #endif
        MI_CLICK, MI_CLICK_LEVEL, MI_COUNTIN, MI_PREVIEW, MI_ADD, MI_LATCH, MI_ACCEL, MI_SCREEN, MI_PANEL, MI_ABOUT, MI_DESIGNER, MI_BACK,
        MI_COUNT };
-static const char *const MI_NAME[MI_COUNT] = {"COLOR", "SPEAKER", "HOLD", "LIGHTS",
+static const char *const MI_NAME[MI_COUNT] = {
+#ifdef MELODEE_SMK
+ "TRS MIDI OUT",
+#endif
+ "COLOR", "SPEAKER", "HOLD", "LIGHTS",
 #if MELODEE_USB_AUDIO
                                               "USB AUDIO",
 #endif
@@ -280,6 +288,9 @@ static void draw_menu(void)
             if (i == MI_LATCH) value = settings_latch ? "ON" : "OFF";
             if (i == MI_ACCEL) value = PREF_BITS & PREF_ACCEL_OFF ? "OFF" : "ON";
             if (i == MI_SCREEN) value = (const char *const[]){"NEVER", "5 MIN", "15 MIN", "30 MIN", "60 MIN"}[scr_get()];
+#ifdef MELODEE_SMK
+            if(i==MI_TRS)value=smk37_trs_enabled?"ON":"OFF";
+#endif
             if (i == MI_LIGHTS) value = LIGHTS_NAME[settings_lights % LIGHTS_N];
             if (i == MI_LOWCUT) value = (const char *const[]){"OFF", "LOWCUT", "BASS+"}[settings.lowcut % 3u];
 #if MELODEE_USB_AUDIO
@@ -351,6 +362,9 @@ static void menu_input(uint32_t oct)                  /* oct: ui_input.c oct_tap
         ui.menu_scroll = (uint16_t)clamp((int32_t)ui.menu_scroll + clamp(s, -128, 128) * 18, 0, menu_scroll_max());
     }
     s = panel_enc(EN_K1);
+#ifdef MELODEE_SMK
+    if((s||ok)&&ui.menu==1&&ui.menu_sel==MI_TRS){smk37_trs_enabled=s>0?1:s<0?0:!smk37_trs_enabled;ui.force=1;ok=0;}
+#endif
     if (s != 0 && ui.menu == 1 && ui.menu_sel == MI_COLOR) {
         settings.palette = (settings.palette + (s > 0 ? 1u : NPALETTES - 1u)) % NPALETTES;   /* (wraps) */
         palette_set(settings.palette);              /* (the menu signature redraws) */

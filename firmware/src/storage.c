@@ -43,6 +43,9 @@ typedef struct {
 } st_hdr_t;
 _Static_assert(sizeof(st_hdr_t) == 32u, "storage commit record layout");
 
+#if defined(MELODEE_SMK_HARDWARE) || defined(MELODEE_SMK_STORE_TEST)
+#include "melodee_smk_store.c"
+#else
 static int st_read(uint32_t off, void *dst, uint32_t n);
 static int st_erase(uint32_t off);
 static int st_prog(uint32_t off, const void *src, uint32_t n);
@@ -224,3 +227,5 @@ static int st_save(uint32_t obj, const void *src, uint32_t len)
     }
     return 0;
 }
+
+#endif /* SMK storage / upstream storage */

@@ -1,6 +1,6 @@
 {
-  "version": "1.1.0-dev1",
+  "version": "1.1.0-b1",
   "engine": "Melodee SMK",
-  "sha256": "9e74ad905e7812987195aee58d97762988b6f7d47a0150bd960fc4fd379e736e",
-  "bytes": 3256111
+  "sha256": "af5185a4476d20c22969fd23c77edf68c8d815a45ac88bd27a9ff7d4332070b3",
+  "bytes": 3256042
 }

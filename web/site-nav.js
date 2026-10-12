@@ -9,16 +9,19 @@
   }
   const nav = document.querySelector('.site-nav');
   if (!nav) return;
-  if(!nav.querySelector('[data-nav="firmware"]')){const a=document.createElement('a');a.href='installer.html';a.dataset.nav='firmware';a.textContent='Install';nav.append(a);}
+  if(!nav.querySelector('[data-nav="firmware"]')){const a=document.createElement('a');a.href='index.html#install';a.dataset.nav='firmware';a.textContent='Install';nav.append(a);}
   if (!nav.querySelector('[data-nav="simulator"]')) {
     const link=document.createElement('a');link.href='simulator.html';link.dataset.nav='simulator';link.textContent='Simulator';
     const studioLink=nav.querySelector('[data-nav="studio"],a[href="editor.html"]');
     if(studioLink)studioLink.after(link);else nav.append(link);
   }
+  const firmware=nav.querySelector('[data-nav="firmware"]');
+  if(firmware&&!document.body.classList.contains('installer-page'))firmware.href='index.html#install';
+  if(!nav.querySelector('[data-nav="themes"]')){const a=document.createElement('a');a.href='index.html#themes';a.dataset.nav='themes';a.textContent='Themes';nav.append(a);}
   const studio = document.body.classList.contains('editor-page');
   const simulator = document.body.classList.contains('simulator-page');
   const update = () => {
-    const section = simulator ? 'simulator' : studio ? 'studio' : ({'#fm1-guide':'manual','#guide':'manual','#themes':'themes','#features':'features'})[location.hash] || 'install';
+    const section = simulator ? 'simulator' : studio ? 'studio' : ({'#install':'firmware','#fm1-guide':'manual','#guide':'manual','#themes':'themes','#features':'features'})[location.hash] || 'install';
     for (const link of nav.querySelectorAll('[data-nav]')) {
       if (link.dataset.nav === section) link.setAttribute('aria-current', section === 'install' || studio || simulator ? 'page' : 'location');
       else link.removeAttribute('aria-current');
