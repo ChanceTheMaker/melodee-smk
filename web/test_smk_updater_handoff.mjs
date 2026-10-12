@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Offline only: model/version gates, handoff, resume and verified reboot.
 import assert from 'node:assert/strict';
-import {Updater} from './installer/fm1ota.js?v=smk-flow-r1';
-import {installSmk,installStockSmk} from './installer/smk37-update.js';
+import {Updater} from './installer/fm1ota.js?v=progress1';
+import {installSmk,installStockSmk} from './installer/smk37-update.js?v=progress1';
 const methods=['findAny','waitForAny','serve'];
 const original=Object.fromEntries(methods.map(k=>[k,Updater.prototype[k]]));
 const id=(model,version)=>({model,version,text:model+'_'+String(version).padStart(3,'0')});
