@@ -1,6 +1,6 @@
 import {createProgress} from '../update-progress.js?v=progress1';
 // SPDX-License-Identifier: GPL-3.0-only
-import {buildSmkPublicPackage} from './smk37-package.js?v=melodee-dc7';
+import {buildSmkPublicPackage} from './smk37-package.js?v=melodee-dc8';
 import {parsePackage,installSmk,installStockSmk} from './smk37-update.js?v=progress1';
 import {STOCK_SOURCES} from './smk37-stock.js';
 const $=id=>document.getElementById(id);
@@ -16,7 +16,7 @@ async function confirmGeneric({identity,port,model}){
     dialog.showModal();
   });
 }
-const dualCoreTrial=m=>['local-development','public-beta'].includes(m.release_channel)&&m.update_version==='MELODEE SMK 1.1.0-b1-dc7'&&m.dual_core===true&&m.sha256==='4426a29ad306a672464d778e44cb3a1238deae87d7b852dc86469f220987522c';
+const dualCoreTrial=m=>['local-development','public-beta'].includes(m.release_channel)&&m.update_version==='MELODEE SMK 1.1.0-b1-dc8'&&m.dual_core===true&&m.sha256==='5ff8fe4936b8a08175cd80bd6930efbb039f8efae38191034bba11ddf41531ff';
 let manifest=null,prepared=null,preparing=false,installing=false,generation=0;
 const support=window.isSecureContext&&typeof navigator.requestMIDIAccess==='function';
 const log=text=>{const line=new Date().toISOString()+' '+text;console.log(line);$('log').textContent+= '\n'+line;$('log').scrollTop=$('log').scrollHeight;};
@@ -33,7 +33,7 @@ async function prepare(){
   const request=++generation,model=$('model').value,file=$('stock-file').files[0];prepared=null;preparing=true;$('confirm').checked=false;controls();status('Preparing Melodee for '+model+'… No device access.');
   try{
     const m=await (await fetchChecked('firmware/candidate.json')).json();
-    if(!['local-development','public-beta'].includes(m.release_channel)||!m.installable||!m.updater||m.hardware_tested!==false||m.update_product!=='SMK-37_941'||(m.update_version!=='MELODEE SMK 1.1.0-b1'&&!dualCoreTrial(m))||m.storage_initialization!=='backup-required'||!m.persistent_storage||!/^[a-z0-9.-]+-candidate\.bin$/.test(m.image))throw Error('The staged manifest is not this reviewed Melodee beta.');
+    if(!['local-development','public-beta'].includes(m.release_channel)||!m.installable||!m.updater||m.hardware_tested!==false||m.update_product!=='SMK-37_942'||(m.update_version!=='MELODEE SMK 1.1.0-b1'&&!dualCoreTrial(m))||m.storage_initialization!=='backup-required'||!m.persistent_storage||!/^[a-z0-9.-]+-candidate\.bin$/.test(m.image))throw Error('The staged manifest is not this reviewed Melodee beta.');
     const app=new Uint8Array(await (await fetchChecked('firmware/'+m.image)).arrayBuffer());
     const stock=new Uint8Array(await (file?file.arrayBuffer():fetchChecked(STOCK_SOURCES[model]).then(r=>r.arrayBuffer())));
     const pkg=await buildSmkPublicPackage(stock,app,{localCandidate:true,product:m.update_product,version:m.update_version,bytes:m.bytes,sha256:m.sha256});

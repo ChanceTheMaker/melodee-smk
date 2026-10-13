@@ -1,4 +1,4 @@
-> **Melodee SMK 1.1.0-b1-dc7 dual-core beta:** see [README_SMK.md](README_SMK.md) for the SMK port, [public installer](https://chancethemaker.github.io/melodee-smk/), Studio/simulator and build status. The upstream FM-1 installation instructions below do not apply to the SMK port.
+> **Melodee SMK 1.1.0-b1-dc8 dual-core beta:** see [README_SMK.md](README_SMK.md) for the SMK port, [public installer](https://chancethemaker.github.io/melodee-smk/), Studio/simulator and build status. The upstream FM-1 installation instructions below do not apply to the SMK port.
 
 # Melodee
 

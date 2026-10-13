@@ -1,5 +1,7 @@
 # Melodee SMK
 
+Current public beta: **1.1.0-b1-dc8** (`SMK-37_942`), with repaired USB updating. Pro Felucca → Melodee and same-version USB installs passed; the owner confirmed screen, keys, knobs and sound. Elite and long-duration dc8 testing remain pending. [Repair evidence](docs/SMK_USB_RECOVERY_DC8.md).
+
 Independent SMK-37 Pro & Elite port of [Melodee](https://github.com/keremimo/melodee), with the shared SMK Studio and simulator website.
 
 **Current release: 1.1.0-b1-dc7 - experimental dual-core public beta.**

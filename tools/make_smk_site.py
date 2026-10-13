@@ -32,11 +32,11 @@ for asset in (web / 'restore-stock').iterdir():
 firmware = web / 'firmware'
 manifest = json.loads((firmware / 'candidate.json').read_text(encoding='utf-8'))
 expected = {
-    'image': 'melodee-smk-1.1.0-b1-dc7-candidate.bin',
-    'sha256': '4426a29ad306a672464d778e44cb3a1238deae87d7b852dc86469f220987522c',
-    'bytes': 581532,
-    'update_product': 'SMK-37_941',
-    'update_version': 'MELODEE SMK 1.1.0-b1-dc7',
+    'image': 'melodee-smk-1.1.0-b1-dc8-candidate.bin',
+    'sha256': '5ff8fe4936b8a08175cd80bd6930efbb039f8efae38191034bba11ddf41531ff',
+    'bytes': 581180,
+    'update_product': 'SMK-37_942',
+    'update_version': 'MELODEE SMK 1.1.0-b1-dc8',
     'release_channel': 'public-beta',
     'installable': True,
     'updater': True,
@@ -46,7 +46,7 @@ expected = {
     'persistent_storage': True,
     'usb_audio': True,
     'storage_initialization': 'backup-required',
-    'storage_audit_sha256': '936b75ed0871c530bed9c853599237f852bc308680ccf62d260be473ed213c66',
+    'storage_audit_sha256': '696adf7245d5c9a5e11ee60af6c60d0c567fa4e455f568a114157aac2ab21717',
 }
 for key, value in expected.items():
     if manifest.get(key) != value:
