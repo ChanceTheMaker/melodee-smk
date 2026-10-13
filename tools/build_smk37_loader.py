@@ -4,7 +4,9 @@ import re,json,hashlib
 import build
 
 def build_loader(out,gen,product="SMK-37_911"):
-    src=build.FW/'loader'; flags=[*build.CFLAGS,'-Ifirmware/hal',f'-I{gen.relative_to(build.SRC)}']
+    # The loader runs with synthesis stopped; optimize its embedded image for
+    # size so the full-sector preservation check fits the fixed app allocation.
+    src=build.FW/'loader'; flags=[*build.CFLAGS,'-Oz','-Ifirmware/hal',f'-I{gen.relative_to(build.SRC)}']
     build.tc_all(('cc','-c',src/'crt0_ldr.S','-o',out/'ldr-start.o'),
                  ('cc',*flags,'-c',src/'smk37_loader.c','-o',out/'ldr.o'))
     elf=out/'smk37-loader.elf'
