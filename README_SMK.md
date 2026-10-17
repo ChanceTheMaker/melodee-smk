@@ -122,3 +122,27 @@ The published target uses the second core for paired FM6/Prophet rendering, with
 Melodee is by Kerem Kilic / Ellic Studio, derived from Felucca by Leo Kuroshita / Hügelton Instruments. The SMK hardware adapters and website components are adapted from ChanceTheMaker/sloop-smk revision **090588d**; their original GPL notices are retained. Port and integration work: Chance Roth (@ChanceTheMaker).
 
 See LICENSE, LICENSING.md, web/FUKIAI-LICENSE.txt and bundled font licenses. The original upstream README below remains an FM-1 reference; its installation instructions do not apply to this SMK development build.
+
+## Windows SMK Pro USB isolation (2026-10-16)
+
+Ports Sloop 0a51b35's native Windows helper and disposable MIDI sessions.
+Installation and original-firmware restore require the matching helper on Windows
+Pro; errors never fall back to browser MIDI. Package construction uses this
+project's own verified builders and pins the existing app. Expected boot identity:
+SMK-37_942. No firmware, protected storage or protocol changes. Elite retains
+its existing browser path. No upstream contribution was submitted.
+
+Validation includes mocked native stages, cross-process exclusion, HTTP boundary
+checks, package verification and browser install/restore routing. Hardware checks
+passed on the connected SMK-37 Pro: original 016 to Melodee 942 was
+installed and independently identified; the final revised-helper cycle installed
+Melodee 942 and restored original Pro 016 with both identities verified.
+The install page stayed responsive (510 ticks at 100 ms) and made zero Web MIDI
+requests. The bounded read-only retry was exercised successfully. Baseline:
+4e62fbc; firmware unchanged.
+
+Melodee enumerates USB audio and MIDI during restart. Its native helper bounds
+each read-only identity probe to 15 seconds and can retry that probe in a fresh
+process, up to three attempts. It never repeats a firmware write automatically;
+a mismatched identity fails immediately. This covers a Windows driver stall
+observed after an otherwise completed dc8 transfer.

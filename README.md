@@ -656,3 +656,25 @@ Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments\
 Modifications Copyright (C) 2026 Kerem Kilic (Ellic Studio)
 
 See [Recording and performance controls](docs/RECORDING_PERFORMANCE.md) for count-in, metronome, drum levels, temporary knob edits, additive chords and MIDI parameter control.
+
+## Windows USB installation
+
+SMK-37 Pro installation and original-firmware restore use a local USB helper
+on Windows, so Chrome does not own MIDI during the device restart. The same
+Install and Restore buttons remain on the website. Other platforms and Elite
+retain their existing browser installer; the native path is Pro-only.
+
+With Python 3 and Node.js 22+ installed, run from this checkout:
+
+```powershell
+python tools/setup_native_smk.py
+python tools/serve_native_smk.py --allow-hosted
+```
+
+Then use the Melodee website, or `http://localhost:8894/`. Allow local-network
+access when prompted. The setup command verifies the official Pro 016 package
+and the published Melodee app; it never accesses MIDI or installs firmware.
+Close connected Studio/Simulator tabs and other MIDI apps before installing.
+If Chrome is already frozen, restart it first to release its previous session.
+Keep the helper running until the installer confirms the returned identity.
+No browser flags or alternative browser profile are required.

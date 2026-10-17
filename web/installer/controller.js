@@ -1,3 +1,5 @@
+import {hasNativeSmk,runNativeSmk,nativeModel} from '../native-smk.js?v=native1';
+import {requestMidiSession,releaseMidiSession} from '../midi-session.js?v=session1';
 import {createProgress} from '../update-progress.js?v=progress1';
 // SPDX-License-Identifier: GPL-3.0-only
 import {buildSmkPublicPackage} from './smk37-package.js?v=melodee-dc8';
@@ -22,6 +24,7 @@ const support=window.isSecureContext&&typeof navigator.requestMIDIAccess==='func
 const log=text=>{const line=new Date().toISOString()+' '+text;console.log(line);$('log').textContent+= '\n'+line;$('log').scrollTop=$('log').scrollHeight;};
 function status(text,error=false){$('status').textContent=text;$('status').dataset.error=String(error);}
 function controls(){
+  $('native-usb-help').hidden=!($('model').value==='SMK-37 Pro'&&/win/i.test(navigator.userAgentData?.platform||navigator.platform||''));
   $('install-button').disabled=!support||!prepared||!$('confirm').checked||preparing||installing;
   for(const id of ['model','route','stock-file','prepare'])$(id).disabled=installing;
   $('prepare').disabled=installing||preparing;
@@ -53,14 +56,18 @@ $('install-button').addEventListener('click',async()=>{
   const pkg=prepared,route=$('route').value;installing=true;controls();progress.start();
   try{
     await parsePackage(pkg.bytes,pkg.sha);
-    status('Requesting MIDI permission. Keep the SMK powered and USB connected.');
-    const access=await navigator.requestMIDIAccess({sysex:true});
-    log('Starting explicit '+route+' installation.');
-    await (route==='stock'?installStockSmk:installSmk)(access,pkg,text=>{status(text);log(text);},{confirmGeneric});
+    if(await hasNativeSmk(nativeModel($('model').value))){
+      await runNativeSmk('install',text=>{status(text);log(text);});
+    }else{
+      status('Requesting MIDI permission. Keep the SMK powered and USB connected.');
+      const access=await requestMidiSession();
+      log('Starting explicit '+route+' installation.');
+      await (route==='stock'?installStockSmk:installSmk)(access,pkg,text=>{status(text);log(text);},{confirmGeneric});
+    }
     progress.done();status('Installed '+manifest.firmware+'. Check the screen, keys and sound on the SMK. For first-time device saves, use the linked storage backup/setup page, then restart.');
     $('confirm').checked=false;
   }catch(e){progress.fail();status(e.message,true);log('Installation stopped: '+e.message);$('confirm').checked=false;}
-  finally{installing=false;controls();}
+  finally{await releaseMidiSession();installing=false;controls();}
 });
 window.addEventListener('beforeunload',event=>{if(installing){event.preventDefault();event.returnValue='';}});
 $('copy-log').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('log').textContent);$('copy-log').textContent='Copied';}catch{status('Select and copy the installation log below.',true);}});
