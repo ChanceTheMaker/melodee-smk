@@ -24,7 +24,7 @@ for hosted in [False,True]:
   assert request('OPTIONS',headers={'Origin':origin,'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'content-type,x-melodee-token'}).status==204
   for headers in [{'Origin':origin},{'Origin':origin,'X-Melodee-Token':'wrong'},{'Origin':'null','X-Melodee-Token':cap['token']}]:
    assert request('POST','/api/smk/jobs',headers,b'{}').status==403
-  assert cap['app']=='melodee-smk' and cap['firmware']=='SMK-37_942'
+  assert cap['app']=='melodee-smk' and cap['firmware']=='SMK-37_943'
   h={'Origin':origin,'X-Melodee-Token':cap['token'],'Content-Type':'application/json'}
   assert request('POST','/api/smk/jobs',h,b'{"action":"shell","model":"smk-pro","app":"melodee-smk"}').status==400
   assert request('POST','/api/smk/jobs',h,b'{"action":"install","model":"fm1","app":"melodee-smk"}').status==400

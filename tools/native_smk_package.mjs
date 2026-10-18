@@ -16,7 +16,7 @@ if(action==='restore'){
   image=smkLogicalImage(stock).raw;packet=original.bytes;expected=original.product;
 }else{
   const manifest=JSON.parse(await fs.readFile(path.join(root,'web/firmware/candidate.json'),'utf8'));
-  if(manifest.release_channel!=='public-beta'||manifest.update_product!=='SMK-37_942'||manifest.image!=='melodee-smk-1.1.0-b1-dc8-candidate.bin'||manifest.sha256!=='5ff8fe4936b8a08175cd80bd6930efbb039f8efae38191034bba11ddf41531ff')throw Error('Unrecognized Melodee public release');
+  if(manifest.release_channel!=='public-beta'||manifest.update_product!=='SMK-37_943'||manifest.image!=='melodee-smk-1.1.0-b1-dc9-candidate.bin'||manifest.sha256!=='b17f8d428d48ad5831c6cf371d7b9799e493b3be04a9dc35279b9b469fb66ead')throw Error('Unrecognized Melodee public release');
   const app=new Uint8Array(await fs.readFile(path.join(root,'web/firmware',manifest.image)));
   const built=await buildSmkPublicPackage(stock,app,{localCandidate:true,product:manifest.update_product,version:manifest.update_version,bytes:manifest.bytes,sha256:manifest.sha256});
   if(built.stockModel!=='SMK-37 Pro')throw Error('Incorrect physical model');

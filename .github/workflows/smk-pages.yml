@@ -36,6 +36,9 @@ jobs:
           done
       - run: node web/test_panel_glide.mjs
       - run: python3 tools/make_smk_site.py build/smk-site
+      - run: node tests/smk_diagnostics.mjs && python3 tests/smk_diagnostics.py
+      - run: cc -O1 -UNDEBUG -DTEST_PUBLIC -Ifirmware/hal tests/smk37_update_test.c -o /tmp/smk-compat && /tmp/smk-compat
+      - run: cc -O1 -UNDEBUG -Ifirmware/hal tests/smk37_flash_profile_test.c -o /tmp/smk-profile && /tmp/smk-profile
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
