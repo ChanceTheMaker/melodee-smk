@@ -1,17 +1,17 @@
 {
-  "firmware": "Melodee SMK 1.1.0-b1-dc8",
+  "firmware": "Melodee SMK 1.1.0-b1-dc9",
   "board": "SMK-37 Pro & Elite",
   "installable": true,
   "release_channel": "public-beta",
-  "update_product": "SMK-37_942",
-  "update_version": "MELODEE SMK 1.1.0-b1-dc8",
+  "update_product": "SMK-37_943",
+  "update_version": "MELODEE SMK 1.1.0-b1-dc9",
   "hardware_tested": false,
   "upstream": "keremimo/melodee",
   "upstream_revision": "01a78bd",
   "donor_revision": "090588d",
-  "image": "melodee-smk-1.1.0-b1-dc8-candidate.bin",
-  "bytes": 581180,
-  "sha256": "5ff8fe4936b8a08175cd80bd6930efbb039f8efae38191034bba11ddf41531ff",
+  "image": "melodee-smk-1.1.0-b1-dc9-candidate.bin",
+  "bytes": 581372,
+  "sha256": "b17f8d428d48ad5831c6cf371d7b9799e493b3be04a9dc35279b9b469fb66ead",
   "entry": "0x2000120",
   "bss_end": "0x1c1fd3c",
   "pool_end": "0x1c4b76c",
@@ -28,7 +28,7 @@
   "cache_ram": false,
   "persistent_storage": true,
   "storage_initialization": "backup-required",
-  "storage_audit_sha256": "696adf7245d5c9a5e11ee60af6c60d0c567fa4e455f568a114157aac2ab21717",
+  "storage_audit_sha256": "105fa85c34d8fb367d03aab6c12654d69feb5324228cd6d1c38f7224405dd50c",
   "usb_audio": true,
   "usb_audio_rate": 44100,
   "trs_midi_out": true,
@@ -36,27 +36,9 @@
   "updater": true,
   "hardware_validation": {
     "model": "SMK-37 Pro",
-    "date": "2026-10-12",
-    "usb_update": "Felucca 0.9.24 to dc8 and dc8 same-version normal-USB reinstall completed with application readback and exact SMK-37_942 restart.",
-    "basic_operation": "Owner confirmed screen, keys, knobs and sound after the USB tests.",
-    "prior_dc7_evidence": {
-      "model": "SMK-37 Pro",
-      "date": "2026-10-12",
-      "dual_core": "FM6 and Prophet manual playing and controlled USB capture passed without worker faults",
-      "storage": "Projects A-D and general preset U1 survived power cycle",
-      "usb_capture": "44100 Hz PCM16; one minute each FM6 and Prophet; no capture underruns or overruns",
-      "limitations": [
-        "Render deadline misses and protective voice shedding under four-note load",
-        "Elite physical validation pending",
-        "USB playback, PCM24 and longer capture validation pending"
-      ]
-    },
-    "limitations": [
-      "dc8 long-duration USB audio/storage testing pending",
-      "Elite physical validation pending",
-      "Same-version reinstall skips unchanged flash sectors"
-    ]
+    "date": "2026-10-18",
+    "usb_update": "SMK Pro: installed and restarted as SMK-37_943, then restored original Pro 016 with successful transfer/readback completion and exact restart identity. EB6014 and Elite hardware confirmation remain pending; UI, sound and long-run validation are not claimed."
   },
-  "source": "https://github.com/ChanceTheMaker/melodee-smk/tree/melodee-smk-1.1.0-b1-dc8",
-  "source_archive": "https://github.com/ChanceTheMaker/melodee-smk/archive/refs/tags/melodee-smk-1.1.0-b1-dc8.zip"
+  "source": "https://github.com/ChanceTheMaker/melodee-smk/tree/melodee-smk-1.1.0-b1-dc9",
+  "source_archive": "https://github.com/ChanceTheMaker/melodee-smk/archive/refs/tags/melodee-smk-1.1.0-b1-dc9.zip"
 }

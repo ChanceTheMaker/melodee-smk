@@ -14,7 +14,7 @@ args=parser.parse_args()
 if args.generate:
  build.generate()
  subprocess.run([sys.executable,str(build.SRC/'tools/gen_909_tables.py'),str(build.GEN/'x0x_drum_tables.h')],check=True)
-version='1.1.0-b1-dc8' if args.dual_core else '1.1.0-b2'
+version='1.1.0-b1-dc9' if args.dual_core else '1.1.0-b2'
 out=build.SRC/('build/melodee-smk-'+version);out.mkdir(parents=True,exist_ok=True)
 # Variant-specific unit/loader headers cannot leak into a baseline build.
 gen=out/'gen';gen.mkdir(parents=True,exist_ok=True)
@@ -23,11 +23,11 @@ gen=out/'gen';gen.mkdir(parents=True,exist_ok=True)
 #define SMK37_UNIT_TRIM_CRC 0u
 #define SMK37_UNIT_HEAD_CRC 0x3a04ad23u
 #define SMK37_UNIT_SAMPLE_CRCS {0,0,0}
-#define SMK37_UPDATE_PRODUCT "SMK-37_942"
+#define SMK37_UPDATE_PRODUCT "SMK-37_943"
 #define SMK37_UPDATE_VERSION "MELODEE SMK @VERSION@"
 #define SMK37_RELEASE_VERSION "@VERSION@"
 '''.replace('@VERSION@',version))
-build_loader(out,gen,'SMK-37_942')
+build_loader(out,gen,'SMK-37_943')
 flags=[*build.CFLAGS,f'-DMELODEE_DUAL_CORE={int(args.dual_core)}','-DMELODEE_CACHE_RAM=0','-DSMK37_ENABLE_USB_AUDIO=1','-Ifirmware/hal','-Ifirmware/src',f'-I{gen.relative_to(build.SRC)}','-Ibuild/gen']
 build.tc_all(('cc',*flags,'-S','-emit-llvm','-Xclang','-disable-llvm-optzns','-c',build.FW/'src/melodee_smk_app.c','-o',out/'app.ll'),('cc',*flags,'-c',build.FW/'smk37_crt0.S','-o',out/'crt0.o'),('cc',*flags,'-c',build.FW/'hal/fm1_vec.S','-o',out/'vec.o'))
 subprocess.run([sys.executable,str(build.SRC/'tools/size_fns.py'),str(out/'app.ll'),str(out/'app-size.ll'),'--smk'],check=True)
@@ -59,5 +59,5 @@ audit=audit_storage(build.SRC,out,symbols,disassembly)
 audit_text=json.dumps(audit,indent=2)+'\n'
 (out/'storage-audit.json').write_text(audit_text)
 name='melodee-smk-'+version+'-candidate.bin';(out/name).write_bytes(image)
-manifest={'firmware':'Melodee SMK '+version,'board':'SMK-37 Pro & Elite','installable':True,'release_channel':'local-development','update_product':'SMK-37_942','update_version':'MELODEE SMK '+version,'hardware_tested':False,'upstream':'keremimo/melodee','upstream_revision':'01a78bd','donor_revision':'090588d','image':name,'bytes':len(image),'sha256':hashlib.sha256(image).hexdigest(),'entry':hex(sym('_start')),'bss_end':hex(sym('_bss_end')),'pool_end':hex(sym('_pool_end')),'resource_bytes':sym('_resource_end')-sym('_resource_start'),'dual_core':args.dual_core,'multicore_audit':multicore_audit,'cache_ram':False,'persistent_storage':True,'storage_initialization':'backup-required','storage_audit_sha256':hashlib.sha256(audit_text.encode()).hexdigest(),'usb_audio':True,'usb_audio_rate':44100,'trs_midi_out':True,'usb_midi':True,'updater':True}
+manifest={'firmware':'Melodee SMK '+version,'board':'SMK-37 Pro & Elite','installable':True,'release_channel':'local-development','update_product':'SMK-37_943','update_version':'MELODEE SMK '+version,'hardware_tested':False,'upstream':'keremimo/melodee','upstream_revision':'01a78bd','donor_revision':'090588d','image':name,'bytes':len(image),'sha256':hashlib.sha256(image).hexdigest(),'entry':hex(sym('_start')),'bss_end':hex(sym('_bss_end')),'pool_end':hex(sym('_pool_end')),'resource_bytes':sym('_resource_end')-sym('_resource_start'),'dual_core':args.dual_core,'multicore_audit':multicore_audit,'cache_ram':False,'persistent_storage':True,'storage_initialization':'backup-required','storage_audit_sha256':hashlib.sha256(audit_text.encode()).hexdigest(),'usb_audio':True,'usb_audio_rate':44100,'trs_midi_out':True,'usb_midi':True,'updater':True}
 (out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n');print(json.dumps(manifest,indent=2))
