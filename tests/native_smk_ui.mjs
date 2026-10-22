@@ -5,6 +5,7 @@ import path from 'node:path';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const base='https://chancethemaker.github.io/melodee-smk/';
 const helper='http://127.0.0.1:8894',token='t'.repeat(43);
+const appHash="b17f8d428d48ad5831c6cf371d7b9799e493b3be04a9dc35279b9b469fb66ead";
 const types={'.js':'text/javascript','.html':'text/html','.css':'text/css','.json':'application/json','.svg':'image/svg+xml'};
 const browser=await chromium.launch({channel:'chrome',headless:true});
 try{
@@ -34,7 +35,7 @@ try{
   const req=route.request(),url=new URL(req.url());
   if(url.pathname.endsWith('/capabilities')){
    probes++;if(mode==='absent')return route.abort('connectionrefused');
-   return route.fulfill({json:{available:true,models:['smk-pro'],protocol:1,token,app:mode==='wrong'?'other-app':'melodee-smk',firmware:'SMK-37_943'}});
+   return route.fulfill({json:{available:true,models:['smk-pro'],protocol:1,token,application_sha256:mode==='legacy'?undefined:appHash,app:mode==='wrong'?'other-app':'melodee-smk',firmware:'SMK-37_943'}});
   }
   if(req.method()==='POST'){
    assert.equal(req.headers()['x-melodee-token'],token);
@@ -46,7 +47,7 @@ try{
  await page.goto(base+'installer.html');await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('ready for'));
  assert.equal(probes,0,'No helper access during page loading');
  await page.locator('#confirm').check();
- for(const failure of ['absent','wrong']){
+ for(const failure of ['absent','wrong','legacy']){
   mode=failure;await page.locator('#confirm').check();await page.locator('#install-button').click();
   await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('browser MIDI updater was not started')&&!document.querySelector('#confirm').disabled&&!document.querySelector('#confirm').checked);
   assert.match(await page.locator('#status').textContent(),/browser MIDI updater was not started/);
@@ -71,7 +72,7 @@ try{
  });
  assert.equal(await page.locator('iframe[data-midi-session]').count(),0);
  assert.equal(await page.evaluate(()=>closedPorts),2);
- await page.goto(base+'restore-stock/');
+ mode='legacy';await page.goto(base+'restore-stock/');
  await page.locator('#prepare').click();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('verified.'));
  await page.locator('#ack').check();await page.locator('#restore').click();
  await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('restored and USB identity confirmed'));
